@@ -230,7 +230,7 @@
                   <div class="kpi-meta">
                     <span class="kpi-cagr positive" id="kpiCAcagr">—</span>
                     <span class="kpi-trend up" id="kpiCAtend">↑</span>
-                    <span class="kpi-period">2014 → 2023</span>
+                    <span class="kpi-period">— → —</span>
                   </div>
                 </div>
                 <div class="kpi-card">
@@ -239,7 +239,7 @@
                   <div class="kpi-meta">
                     <span class="kpi-cagr positive" id="kpiREXcagr">—</span>
                     <span class="kpi-trend up" id="kpiREXtend">↑</span>
-                    <span class="kpi-period">2014 → 2023</span>
+                    <span class="kpi-period">— → —</span>
                   </div>
                 </div>
                 <div class="kpi-card">
@@ -248,39 +248,48 @@
                   <div class="kpi-meta">
                     <span class="kpi-cagr positive" id="kpiRNcagr">—</span>
                     <span class="kpi-trend up" id="kpiRNtend">↑</span>
-                    <span class="kpi-period">2014 → 2023</span>
+                    <span class="kpi-period">— → —</span>
                   </div>
                 </div>
               </div>
 
-              <!-- Graphiques linéaires -->
+              <!-- Graphiques linéaires — mini aperçu, clic ⤢ pour agrandir -->
               <div class="charts-grid">
                 <div class="chart-card">
                   <div class="chart-card-header">
-                    <div class="chart-title">Chiffre d'affaires</div>
-                    <div class="chart-subtitle">millions FCFA</div>
+                    <div>
+                      <div class="chart-title">Chiffre d'affaires</div>
+                      <div class="chart-subtitle">Mrd FCFA</div>
+                    </div>
                   </div>
                   <div class="chart-container">
                     <canvas id="chartCA"></canvas>
                   </div>
+                  <button class="chart-expand-btn" onclick="agrandirGraphique('chartCA','Chiffre d\'affaires','Mrd FCFA')" title="Agrandir">⤢</button>
                 </div>
                 <div class="chart-card">
                   <div class="chart-card-header">
-                    <div class="chart-title">Résultat d'exploitation</div>
-                    <div class="chart-subtitle">millions FCFA</div>
+                    <div>
+                      <div class="chart-title">Résultat d'exploitation</div>
+                      <div class="chart-subtitle">Mrd FCFA</div>
+                    </div>
                   </div>
                   <div class="chart-container">
                     <canvas id="chartREX"></canvas>
                   </div>
+                  <button class="chart-expand-btn" onclick="agrandirGraphique('chartREX','Résultat d\'exploitation','Mrd FCFA')" title="Agrandir">⤢</button>
                 </div>
                 <div class="chart-card">
                   <div class="chart-card-header">
-                    <div class="chart-title">Résultat net</div>
-                    <div class="chart-subtitle">millions FCFA</div>
+                    <div>
+                      <div class="chart-title">Résultat net</div>
+                      <div class="chart-subtitle">Mrd FCFA</div>
+                    </div>
                   </div>
                   <div class="chart-container">
                     <canvas id="chartRN"></canvas>
                   </div>
+                  <button class="chart-expand-btn" onclick="agrandirGraphique('chartRN','Résultat net','Mrd FCFA')" title="Agrandir">⤢</button>
                 </div>
               </div>
 
@@ -493,12 +502,15 @@
               <!-- Graphique cours historique 12 mois -->
               <div class="chart-card" style="margin-bottom:20px;">
                 <div class="chart-card-header">
-                  <div class="chart-title">Cours sur 12 mois</div>
-                  <div class="chart-subtitle">FCFA — données mensuelles</div>
+                  <div>
+                    <div class="chart-title">Cours sur 12 mois</div>
+                    <div class="chart-subtitle">FCFA — données mensuelles</div>
+                  </div>
                 </div>
                 <div class="chart-container">
                   <canvas id="chartCours"></canvas>
                 </div>
+                <button class="chart-expand-btn" onclick="agrandirGraphique('chartCours','Cours historique','FCFA')" title="Agrandir">⤢</button>
               </div>
 
               <!-- Métriques de valorisation -->
@@ -887,6 +899,23 @@
       <div class="api-info-row">
         <span class="dot mock"></span>
         <span><strong>Données simulées</strong> — fallback local</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL GRAPHIQUE ÉLARGI ==================== -->
+  <div class="chart-modal" id="chartModal" role="dialog" aria-modal="true">
+    <div class="chart-modal-backdrop" onclick="fermerModalGraphique()"></div>
+    <div class="chart-modal-box">
+      <div class="chart-modal-header">
+        <div>
+          <div class="chart-modal-title" id="chartModalTitle">Graphique</div>
+          <div class="chart-modal-subtitle" id="chartModalSubtitle"></div>
+        </div>
+        <button class="chart-modal-close" onclick="fermerModalGraphique()" aria-label="Fermer">✕</button>
+      </div>
+      <div class="chart-modal-body">
+        <canvas id="chartModalCanvas"></canvas>
       </div>
     </div>
   </div>

@@ -575,62 +575,203 @@ textarea {
 .charts-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: 12px;
   margin-bottom: 16px;
+  /* Empêche les colonnes de déborder */
+  min-width: 0;
 }
 
 .charts-grid-2 {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 12px;
   margin-bottom: 16px;
+  min-width: 0;
+}
+
+/* Chaque carte de la grille ne déborde pas */
+.charts-grid > *,
+.charts-grid-2 > * {
+  min-width: 0;
+  overflow: hidden;
 }
 
 .chart-card {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  padding: 20px;
-  transition: all var(--transition);
+  padding: 14px 16px 12px;
+  transition: border-color var(--transition);
+  /* Carte strictement dans sa colonne */
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
 }
 
 .chart-card:hover {
   border-color: var(--border-color-light);
 }
 
+/* Bouton d'expansion affiché au survol */
+.chart-expand-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0,0,0,0.45);
+  border: 1px solid var(--border-color-light);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition);
+  z-index: 2;
+}
+
+.chart-card:hover .chart-expand-btn {
+  opacity: 1;
+}
+
+.chart-expand-btn:hover {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
 .chart-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .chart-title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .chart-subtitle {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
+/* Mini aperçu (hauteur réduite dans la grille) */
 .chart-container {
   position: relative;
-  height: 180px;
+  height: 130px;
 }
 
 .chart-container-sm {
   position: relative;
-  height: 140px;
+  height: 110px;
 }
 
 .chart-container-lg {
   position: relative;
-  height: 260px;
+  height: 220px;
+}
+
+/* Canvas confiné dans son conteneur */
+.chart-container canvas,
+.chart-container-sm canvas,
+.chart-container-lg canvas {
+  max-width: 100% !important;
+}
+
+/* ==================== MODAL GRAPHIQUE ÉLARGI ==================== */
+.chart-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+}
+
+.chart-modal.open {
+  display: flex;
+}
+
+.chart-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  cursor: pointer;
+}
+
+.chart-modal-box {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--radius-lg);
+  width: min(90vw, 860px);
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+  animation: modalFadeIn 0.18s ease;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.chart-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.chart-modal-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.chart-modal-subtitle {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.chart-modal-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.chart-modal-close:hover {
+  color: var(--text-primary);
+  background: var(--bg-card-hover);
+}
+
+.chart-modal-body {
+  flex: 1;
+  padding: 20px;
+  position: relative;
+  height: 420px;
+}
+
+.chart-modal-body canvas {
+  max-width: 100% !important;
 }
 
 /* ==================== SECTIONS ACCORDÉON ==================== */
@@ -641,6 +782,8 @@ textarea {
   margin-bottom: 12px;
   overflow: hidden;
   transition: border-color var(--transition);
+  /* Décalage pour la navigation sticky (header + ticker bar) */
+  scroll-margin-top: 110px;
 }
 
 .accordion-section:hover {

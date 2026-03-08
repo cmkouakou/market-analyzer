@@ -19,6 +19,34 @@
 let entrepriseActive = 'SNTS'; // Entreprise sélectionnée par défaut
 let donneesActuelles = null;   // Cache des données de l'entreprise courante
 let scoreActuel = null;        // Cache du score calculé
+let chartModal = null;         // Instance Chart.js dans le modal élargi
+
+// ==================== FORMATAGE DEVISE ====================
+
+/**
+ * Formate un montant en millions FCFA vers un affichage lisible
+ * Ex : 843000 → "843 Mrd" | 1640000 → "1 640 Mrd"
+ * Pas d'unité "FCFA" dans la valeur — le badge devise est dans le header
+ *
+ * @param {number} valeurMillions - Valeur en millions FCFA
+ * @returns {string} Valeur formatée
+ */
+function formaterMrd(valeurMillions) {
+  const mrd = valeurMillions / 1000;
+  if (mrd >= 1000) {
+    return (mrd / 1000).toFixed(2) + ' Bill.';
+  }
+  return mrd.toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' Mrd';
+}
+
+/**
+ * Retourne les deux années extrêmes de ANNEES_10 pour les labels KPI
+ * @returns {string} ex: "2017 → 2026"
+ */
+function labelPeriode() {
+  const a = BRVMData.ANNEES_10;
+  return `${a[0]} → ${a[a.length - 1]}`;
+}
 
 // ==================== INITIALISATION ====================
 
@@ -365,23 +393,19 @@ function mettreAJourKPI(donnees) {
   const { ca, rex, rn } = donnees;
   const n = ca.length;
 
+  const anneeRecente = BRVMData.ANNEES_10[n - 1]; // année la plus récente dans les données
+
   // KPI Chiffre d'affaires
   const cagrCA = Scoring.calculerCAGR(ca[0], ca[n - 1], n - 1);
-  mettreAJourCarteKPI('kpiCA', 'kpiCAcagr', 'kpiCAtend',
-    `${(ca[n - 1] / 1000).toFixed(1)} Mrd FCFA`, cagrCA, 'CA 2023'
-  );
+  mettreAJourCarteKPI('kpiCA', 'kpiCAcagr', 'kpiCAtend', formaterMrd(ca[n - 1]), cagrCA, anneeRecente);
 
   // KPI Résultat d'exploitation
   const cagrREX = Scoring.calculerCAGR(rex[0], rex[n - 1], n - 1);
-  mettreAJourCarteKPI('kpiREX', 'kpiREXcagr', 'kpiREXtend',
-    `${(rex[n - 1] / 1000).toFixed(1)} Mrd FCFA`, cagrREX, 'REX 2023'
-  );
+  mettreAJourCarteKPI('kpiREX', 'kpiREXcagr', 'kpiREXtend', formaterMrd(rex[n - 1]), cagrREX, anneeRecente);
 
   // KPI Résultat net
   const cagrRN = Scoring.calculerCAGR(rn[0], rn[n - 1], n - 1);
-  mettreAJourCarteKPI('kpiRN', 'kpiRNcagr', 'kpiRNtend',
-    `${(rn[n - 1] / 1000).toFixed(1)} Mrd FCFA`, cagrRN, 'RN 2023'
-  );
+  mettreAJourCarteKPI('kpiRN', 'kpiRNcagr', 'kpiRNtend', formaterMrd(rn[n - 1]), cagrRN, anneeRecente);
 }
 
 /**
@@ -411,6 +435,10 @@ function mettreAJourCarteKPI(valueId, cagrId, tendId, valeur, cagr, label) {
     else if (cagr >= 0) { elTend.textContent = '→'; elTend.className = 'kpi-trend neutral'; }
     else { elTend.textContent = '↓'; elTend.className = 'kpi-trend down'; }
   }
+
+  // Mise à jour du label de période (dynamique selon ANNEES_10)
+  const elPeriod = elTend ? elTend.closest('.kpi-meta')?.querySelector('.kpi-period') : null;
+  if (elPeriod) elPeriod.textContent = labelPeriode();
 }
 
 // ==================== GRAPHIQUES DE PERFORMANCE ====================
@@ -836,19 +864,42 @@ function initialiserSidebar() {
       navItems.forEach(n => n.classList.remove('active'));
       this.classList.add('active');
 
-      // Scroll vers la section cible
       const sectionId = this.dataset.section;
       const section = document.getElementById(sectionId);
       if (section) {
-        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-        // Ouverture de l'accordéon si nécessaire
+        // Ouverture de l'accordéon cible si fermé
         if (!section.classList.contains('open')) {
           section.classList.add('open');
         }
+        // Scroll avec décalage pour header sticky (ticker 36px + header 64px + marge 12px)
+        const offset = 112;
+        const top = section.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
+
+      // Sur mobile : ferme le menu après clic
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (sidebar && sidebar.classList.contains('mobile-open')) {
+        sidebar.classList.remove('mobile-open');
+        overlay?.classList.remove('visible');
       }
     });
   });
+
+  // IntersectionObserver : met en surbrillance le lien sidebar de la section visible
+  const observateur = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navItems.forEach(n => {
+          n.classList.toggle('active', n.dataset.section === id);
+        });
+      }
+    });
+  }, { rootMargin: '-110px 0px -60% 0px', threshold: 0 });
+
+  document.querySelectorAll('.accordion-section[id]').forEach(sec => observateur.observe(sec));
 }
 
 // ==================== ACCORDÉONS ====================
@@ -889,7 +940,73 @@ function mettreAJourElement(id, valeur) {
   if (el) el.textContent = valeur;
 }
 
+// ==================== MODAL GRAPHIQUE ÉLARGI ====================
+
+/**
+ * Ouvre le modal en répliquant les données du graphique mini
+ *
+ * @param {string} canvasId - ID du canvas source (ex: 'chartCA')
+ * @param {string} titre    - Titre à afficher dans le modal
+ * @param {string} [sousTitre] - Sous-titre optionnel (ex: 'Mrd FCFA')
+ */
+function agrandirGraphique(canvasId, titre, sousTitre) {
+  const canvasSource = document.getElementById(canvasId);
+  const sourceChart = canvasSource ? Chart.getChart(canvasSource) : null;
+  if (!sourceChart) return;
+
+  // Affichage du modal
+  const modal = document.getElementById('chartModal');
+  if (!modal) return;
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // Mise à jour du titre
+  const elTitre = document.getElementById('chartModalTitle');
+  const elSousTitre = document.getElementById('chartModalSubtitle');
+  if (elTitre) elTitre.textContent = titre;
+  if (elSousTitre) elSousTitre.textContent = sousTitre || '';
+
+  // Destruction de l'éventuel chart précédent
+  if (chartModal) { chartModal.destroy(); chartModal = null; }
+
+  // Recréation du chart dans le modal avec les mêmes données
+  const canvasModal = document.getElementById('chartModalCanvas');
+  if (!canvasModal) return;
+
+  // Clone profond de la config du chart source
+  const config = JSON.parse(JSON.stringify({
+    type: sourceChart.config.type,
+    data: sourceChart.config.data,
+    options: sourceChart.config.options
+  }));
+
+  // Options supplémentaires pour le modal (plus lisible)
+  config.options.plugins = config.options.plugins || {};
+  config.options.plugins.legend = { display: true };
+  config.options.maintainAspectRatio = false;
+  config.options.animation = { duration: 400 };
+
+  chartModal = new Chart(canvasModal, config);
+}
+
+/**
+ * Ferme le modal graphique
+ */
+function fermerModalGraphique() {
+  const modal = document.getElementById('chartModal');
+  if (modal) modal.classList.remove('open');
+  document.body.style.overflow = '';
+  if (chartModal) { chartModal.destroy(); chartModal = null; }
+}
+
+// Fermeture avec la touche Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') fermerModalGraphique();
+});
+
 // ==================== EXPORTS GLOBAUX ====================
 // Expose les fonctions nécessaires aux gestionnaires HTML inline
 window.toggleSection = toggleSection;
 window.chargerEntreprise = chargerEntreprise;
+window.agrandirGraphique = agrandirGraphique;
+window.fermerModalGraphique = fermerModalGraphique;
