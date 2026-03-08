@@ -557,10 +557,9 @@ function saveApiKey() {
   }
 
   localStorage.setItem('eodhd_token', token);
-  // Mise à jour de la configuration en mémoire
-  window.ApiConfig.API_CONFIG.eodhd.token = token;
+  // Le getter API_CONFIG.eodhd.token lit toujours depuis localStorage — pas besoin de mise à jour manuelle
 
-  afficherResultatTest('Clé API sauvegardée avec succès.', 'success');
+  afficherResultatTest('Clé API sauvegardée. Cliquez sur "Tester" pour valider.', 'success');
 }
 
 /**
@@ -571,8 +570,10 @@ async function testApiConnection() {
 
   try {
     const token = localStorage.getItem('eodhd_token') || 'demo';
-    const url = `https://eodhd.com/api/real-time/SNTS.BRVM?api_token=${token}&fmt=json`;
-    const reponse = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    // Utilisation du proxy CORS — EODHD bloque les fetch() directs depuis le navigateur
+    const urlBrute = `https://eodhd.com/api/real-time/SNTS.BRVM?api_token=${token}&fmt=json`;
+    const url = window.ApiConfig.proxify(urlBrute);
+    const reponse = await fetch(url, { signal: AbortSignal.timeout(12000) });
 
     if (!reponse.ok) {
       afficherResultatTest(`Erreur HTTP ${reponse.status} — Clé invalide ou service indisponible.`, 'error');
@@ -581,9 +582,12 @@ async function testApiConnection() {
 
     const json = await reponse.json();
     if (json && json.close !== undefined) {
-      afficherResultatTest(`Connexion réussie ! Cours SNTS : ${json.close} FCFA`, 'success');
+      const coursFormate = Math.round(json.close).toLocaleString('fr-FR');
+      afficherResultatTest(`✓ Connexion réussie ! Cours Sonatel CI : ${coursFormate} FCFA`, 'success');
+    } else if (json && json.code === 'NA') {
+      afficherResultatTest('Ticker non disponible sur le plan gratuit. Données simulées utilisées.', 'error');
     } else {
-      afficherResultatTest('Réponse reçue mais données incomplètes.', 'error');
+      afficherResultatTest('Réponse reçue mais données incomplètes. Vérifiez votre clé.', 'error');
     }
   } catch (err) {
     afficherResultatTest(`Échec de la connexion : ${err.message}`, 'error');

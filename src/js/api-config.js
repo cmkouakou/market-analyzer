@@ -4,57 +4,83 @@
  *  Projet     : Market Analyser
  *  Description: Configuration des clés et endpoints API
  *               EODHD (primaire) et Sikafinance (secondaire)
+ *               Proxy CORS : corsproxy.io (contourne la restriction
+ *               CORS d'EODHD qui bloque les appels fetch() navigateur)
  *  Auteur     : Claude Marcel
- *  Version    : 1.0
- *  Date       : 2026-03-07
+ *  Version    : 1.1
+ *  Date       : 2026-03-08
  *  Dépendances: (aucune)
  * =============================================================
  */
 
 'use strict';
 
+// ==================== PROXY CORS ====================
+
+/**
+ * EODHD ne retourne pas les headers Access-Control-Allow-Origin,
+ * ce qui bloque tout appel fetch() depuis le navigateur.
+ * Solution : faire transiter les requêtes par corsproxy.io (gratuit).
+ *
+ * Format : https://corsproxy.io/?{URL_ENCODÉE}
+ *
+ * Alternatives si corsproxy.io est indisponible :
+ *   - https://api.allorigins.win/get?url={URL_ENCODÉE}  (retourne { contents: "..." })
+ *   - https://cors.sh/{URL_DIRECTE}                     (nécessite une clé)
+ */
+const CORS_PROXY = 'https://corsproxy.io/?';
+
+/**
+ * Encapsule une URL EODHD dans le proxy CORS
+ * @param {string} url - URL EODHD originale
+ * @returns {string} URL proxifiée
+ */
+function proxify(url) {
+  return CORS_PROXY + encodeURIComponent(url);
+}
+
 // ==================== CONFIGURATION API ====================
 
 const API_CONFIG = {
   eodhd: {
     baseUrl: 'https://eodhd.com/api',
-    token: localStorage.getItem('eodhd_token') || 'demo',
+    get token() { return localStorage.getItem('eodhd_token') || 'demo'; },
     exchange: 'BRVM',
 
-    // Endpoints EODHD
+    // Endpoints EODHD — tous proxifiés via corsproxy.io
     endpoints: {
       /**
-       * Données temps réel pour un ticker
+       * Données temps réel pour un ticker (proxifié)
        * @param {string} ticker - Ticker au format SNTS.BRVM
-       * @returns {string} URL complète
+       * @returns {string} URL proxifiée
        */
       realtime: (ticker) =>
-        `https://eodhd.com/api/real-time/${ticker}?api_token=${API_CONFIG.eodhd.token}&fmt=json`,
+        proxify(`https://eodhd.com/api/real-time/${ticker}?api_token=${API_CONFIG.eodhd.token}&fmt=json`),
 
       /**
-       * Historique EOD (End of Day) pour un ticker
+       * Historique EOD (End of Day) pour un ticker (proxifié)
        * @param {string} ticker - Ticker au format SNTS.BRVM
        * @param {string} from   - Date de début (YYYY-MM-DD)
        * @param {string} to     - Date de fin (YYYY-MM-DD)
-       * @returns {string} URL complète
+       * @returns {string} URL proxifiée
        */
       historical: (ticker, from, to) =>
-        `https://eodhd.com/api/eod/${ticker}?api_token=${API_CONFIG.eodhd.token}&fmt=json&period=d&from=${from}&to=${to}`,
+        proxify(`https://eodhd.com/api/eod/${ticker}?api_token=${API_CONFIG.eodhd.token}&fmt=json&period=d&from=${from}&to=${to}`),
 
       /**
-       * Données fondamentales pour un ticker
+       * Données fondamentales pour un ticker (proxifié)
        * @param {string} ticker - Ticker au format SNTS.BRVM
-       * @returns {string} URL complète
+       * @returns {string} URL proxifiée
        */
       fundamentals: (ticker) =>
-        `https://eodhd.com/api/fundamentals/${ticker}?api_token=${API_CONFIG.eodhd.token}&fmt=json`,
+        proxify(`https://eodhd.com/api/fundamentals/${ticker}?api_token=${API_CONFIG.eodhd.token}&fmt=json`),
 
       /**
-       * Liste de tous les symboles disponibles sur la BRVM
-       * @returns {string} URL complète
+       * Liste de tous les symboles disponibles sur la BRVM (proxifié)
+       * @returns {string} URL proxifiée
        */
       exchangeList: () =>
-        `https://eodhd.com/api/exchange-symbol-list/BRVM?api_token=${API_CONFIG.eodhd.token}&fmt=json`,
+        proxify(`https://eodhd.com/api/exchange-symbol-list/BRVM?api_token=${API_CONFIG.eodhd.token}&fmt=json`),
     },
 
     // Limites d'utilisation (plan gratuit)
@@ -113,5 +139,6 @@ if (typeof window !== 'undefined') {
   window.ApiConfig = {
     API_CONFIG,
     BRVM_TICKER_MAP,
+    proxify,
   };
 }

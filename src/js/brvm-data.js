@@ -15,7 +15,9 @@
 'use strict';
 
 // ==================== ÉTIQUETTES COMMUNES ====================
-const ANNEES_10 = ['2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023'];
+// Génère dynamiquement les 10 dernières années (toujours à jour)
+const ANNEE_COURANTE = new Date().getFullYear();
+const ANNEES_10 = Array.from({ length: 10 }, (_, i) => String(ANNEE_COURANTE - 9 + i));
 const MOIS_12 = ['Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc', 'Jan', 'Fév'];
 
 // ==================== DONNÉES DES ENTREPRISES BRVM ====================
