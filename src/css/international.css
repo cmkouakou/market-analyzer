@@ -1,0 +1,393 @@
+/*
+=============================================================
+  Fichier    : international.css
+  Projet     : Market Analyser
+  Description: Surcharges thématiques pour le module International
+               Thème bleu sombre, style terminal financier Bloomberg
+  Auteur     : Claude Marcel
+  Version    : 1.0
+  Date       : 2026-03-07
+  Dépend de  : variables.css, base.css
+=============================================================
+*/
+
+/* ==================== CORPS ET FOND INTERNATIONAL ==================== */
+body.theme-intl {
+  background-color: #0d1117;
+}
+
+/* ==================== BARRE LATÉRALE INTERNATIONALE ==================== */
+.theme-intl .sidebar {
+  background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);
+}
+
+.theme-intl .sidebar-logo .logo-icon {
+  background: linear-gradient(135deg, #388bfd, #bc8cff);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+}
+
+/* ==================== NAVIGATION INTERNATIONALE ==================== */
+.theme-intl .nav-item.active {
+  background: linear-gradient(90deg, rgba(88, 166, 255, 0.15), transparent);
+  color: #58a6ff;
+}
+
+.theme-intl .nav-item:hover {
+  background: rgba(88, 166, 255, 0.07);
+}
+
+/* ==================== EN-TÊTE INTERNATIONAL ==================== */
+.theme-intl .app-header {
+  background: linear-gradient(90deg, #161b22, #0d1117);
+  border-bottom-color: #30363d;
+}
+
+/* ==================== CARTE KPI INTERNATIONALE ==================== */
+.theme-intl .kpi-card::before {
+  background: linear-gradient(90deg, #58a6ff, #bc8cff);
+}
+
+.theme-intl .kpi-card:hover {
+  box-shadow: 0 4px 20px rgba(88, 166, 255, 0.12);
+}
+
+/* ==================== BOUTONS INTERNATIONAUX ==================== */
+.theme-intl .btn-primary {
+  background: linear-gradient(135deg, #388bfd, #58a6ff);
+}
+
+.theme-intl .btn-primary:hover {
+  background: linear-gradient(135deg, #58a6ff, #79c0ff);
+  box-shadow: 0 0 20px rgba(88, 166, 255, 0.3);
+}
+
+/* ==================== SCORE RING INTERNATIONAL ==================== */
+.theme-intl .score-ring-large {
+  filter: drop-shadow(0 0 16px rgba(88, 166, 255, 0.25));
+}
+
+.theme-intl .score-bar-fill {
+  background: linear-gradient(90deg, #388bfd, #79c0ff);
+}
+
+/* ==================== BARRE TICKER MARCHÉS INTERNATIONAUX ==================== */
+.ticker-bar {
+  background-color: #161b22;
+  border-bottom: 1px solid #30363d;
+  padding: 6px 24px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ticker-inner {
+  display: inline-flex;
+  gap: 40px;
+  animation: ticker 35s linear infinite;
+}
+
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8b949e;
+}
+
+.ticker-item .ticker-symbol {
+  color: #e6edf3;
+  font-family: var(--font-mono);
+}
+
+.ticker-item .ticker-price {
+  color: #484f58;
+}
+
+.ticker-item .ticker-change.up {
+  color: #39d353;
+}
+
+.ticker-item .ticker-change.down {
+  color: #f85149;
+}
+
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* ==================== INDICATEUR MARCHÉ (NYSE/NASDAQ/EU) ==================== */
+.market-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background-color: rgba(88, 166, 255, 0.07);
+  border: 1px solid rgba(88, 166, 255, 0.15);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  color: #484f58;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.market-indicator .market-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #39d353;
+  animation: pulse 2s ease infinite;
+}
+
+.market-indicator .market-dot.closed {
+  background-color: #f85149;
+  animation: none;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* ==================== DRAPEAU DE DEVISE ==================== */
+.currency-flag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #484f58;
+}
+
+.currency-flag .flag-emoji {
+  font-size: 14px;
+}
+
+/* ==================== GRAPHIQUES INTERNATIONAUX ==================== */
+.theme-intl .chart-card {
+  background: linear-gradient(180deg, #1c2128 0%, #1a1f27 100%);
+}
+
+.theme-intl .chart-card.accent-purple {
+  border-left: 3px solid #bc8cff;
+}
+
+.theme-intl .chart-card.accent-blue {
+  border-left: 3px solid #58a6ff;
+}
+
+/* Couleurs des séries de données */
+.theme-intl .revenue-color { color: #58a6ff; }
+.theme-intl .ebit-color { color: #bc8cff; }
+.theme-intl .net-income-color { color: #39d353; }
+
+/* ==================== TABLEAU COMPARATIF INTERNATIONAL ==================== */
+.exchange-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.exchange-badge.nasdaq {
+  background-color: rgba(88, 166, 255, 0.12);
+  color: #58a6ff;
+  border: 1px solid rgba(88, 166, 255, 0.25);
+}
+
+.exchange-badge.nyse {
+  background-color: rgba(188, 140, 255, 0.12);
+  color: #bc8cff;
+  border: 1px solid rgba(188, 140, 255, 0.25);
+}
+
+.exchange-badge.euronext {
+  background-color: rgba(57, 211, 83, 0.12);
+  color: #39d353;
+  border: 1px solid rgba(57, 211, 83, 0.25);
+}
+
+.exchange-badge.lse {
+  background-color: rgba(240, 136, 62, 0.12);
+  color: #f0883e;
+  border: 1px solid rgba(240, 136, 62, 0.25);
+}
+
+/* ==================== CARTE DE VALORISATION INTERNATIONALE ==================== */
+.valuation-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.valuation-metric {
+  background-color: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: var(--radius-md);
+  padding: 14px 12px;
+  text-align: center;
+}
+
+.val-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #484f58;
+  margin-bottom: 6px;
+}
+
+.val-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #e6edf3;
+  font-family: var(--font-mono);
+}
+
+.val-score {
+  font-size: 11px;
+  color: #484f58;
+  margin-top: 4px;
+}
+
+/* ==================== SÉLECTEUR DE DEVISE ==================== */
+.currency-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.currency-btn {
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 700;
+  color: #484f58;
+  border: 1px solid transparent;
+  transition: all var(--transition);
+  font-family: var(--font-mono);
+}
+
+.currency-btn.active {
+  background-color: rgba(88, 166, 255, 0.12);
+  color: #58a6ff;
+  border-color: rgba(88, 166, 255, 0.25);
+}
+
+.currency-btn:hover:not(.active) {
+  color: #8b949e;
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+/* ==================== ÉTAT NEUTRE INTERNATIONAL ==================== */
+.theme-intl .score-reco.acheter {
+  box-shadow: 0 0 16px rgba(57, 211, 83, 0.2);
+}
+
+/* ==================== TABLEAU DES PAIRS INTERNATIONAL ==================== */
+.peer-highlight-intl {
+  background-color: rgba(88, 166, 255, 0.06) !important;
+}
+
+.peer-highlight-intl td {
+  color: #8b949e !important;
+}
+
+/* ==================== SÉPARATEUR SECTION INTERNATIONALE ==================== */
+.theme-intl .accordion-section.open {
+  border-color: rgba(88, 166, 255, 0.2);
+}
+
+.theme-intl .accordion-header:hover {
+  background: rgba(88, 166, 255, 0.04);
+}
+
+/* ==================== AFFICHAGE DE PRIX INTERNATIONAL ==================== */
+.price-header {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.price-current-intl {
+  font-size: 36px;
+  font-weight: 800;
+  color: #e6edf3;
+  line-height: 1;
+  font-family: var(--font-mono);
+}
+
+.price-currency-intl {
+  font-size: 14px;
+  font-weight: 600;
+  color: #484f58;
+  margin-bottom: 4px;
+}
+
+.price-change-intl {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+}
+
+.price-change-intl.up {
+  background-color: rgba(57, 211, 83, 0.15);
+  color: #39d353;
+}
+
+.price-change-intl.down {
+  background-color: rgba(248, 81, 73, 0.15);
+  color: #f85149;
+}
+
+/* ==================== SECTEUR TECH / LUXE / ÉNERGIE ==================== */
+.sector-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  color: #8b949e;
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid #30363d;
+}
+
+.sector-tag.tech { color: #58a6ff; border-color: rgba(88, 166, 255, 0.25); background-color: rgba(88, 166, 255, 0.07); }
+.sector-tag.luxury { color: #bc8cff; border-color: rgba(188, 140, 255, 0.25); background-color: rgba(188, 140, 255, 0.07); }
+.sector-tag.energy { color: #f0883e; border-color: rgba(240, 136, 62, 0.25); background-color: rgba(240, 136, 62, 0.07); }
+.sector-tag.banking { color: #39d353; border-color: rgba(57, 211, 83, 0.25); background-color: rgba(57, 211, 83, 0.07); }
+.sector-tag.auto { color: #ffa657; border-color: rgba(255, 166, 87, 0.25); background-color: rgba(255, 166, 87, 0.07); }
+
+/* ==================== RESPONSIVE INTERNATIONAL ==================== */
+@media (max-width: 1200px) {
+  .valuation-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .ticker-bar {
+    display: none;
+  }
+
+  .valuation-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .price-current-intl {
+    font-size: 28px;
+  }
+}

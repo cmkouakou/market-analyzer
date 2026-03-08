@@ -1,0 +1,304 @@
+/*
+=============================================================
+  Fichier    : brvm.css
+  Projet     : Market Analyser
+  Description: Surcharges thématiques spécifiques au module BRVM/UEMOA
+               Couleurs vert foncé et orange, ambiance marché africain
+  Auteur     : Claude Marcel
+  Version    : 1.0
+  Date       : 2026-03-07
+  Dépend de  : variables.css, base.css
+=============================================================
+*/
+
+/* ==================== CORPS ET FOND BRVM ==================== */
+body.theme-brvm {
+  background-color: #0a1a0b;
+}
+
+/* ==================== LOGO BRVM ==================== */
+.theme-brvm .sidebar-logo .logo-icon {
+  background: linear-gradient(135deg, #2ecc71, #f39c12);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+}
+
+/* Dégradé de la barre latérale BRVM */
+.theme-brvm .sidebar {
+  background: linear-gradient(180deg, #0d2210 0%, #0a1a0b 100%);
+}
+
+/* ==================== ÉLÉMENTS DE NAVIGATION BRVM ==================== */
+.theme-brvm .nav-item.active {
+  background: linear-gradient(90deg, rgba(46, 204, 113, 0.15), transparent);
+  color: #2ecc71;
+}
+
+.theme-brvm .nav-item:hover {
+  background: rgba(46, 204, 113, 0.08);
+}
+
+/* ==================== EN-TÊTE BRVM ==================== */
+.theme-brvm .app-header {
+  background: linear-gradient(90deg, #0d2210, #0a1a0b);
+  border-bottom-color: #1a3a1e;
+}
+
+/* ==================== BADGE TICKER BRVM ==================== */
+.ticker-bar {
+  background-color: #0d2210;
+  border-bottom: 1px solid #1a3a1e;
+  padding: 6px 24px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ticker-inner {
+  display: inline-flex;
+  gap: 40px;
+  animation: ticker 30s linear infinite;
+}
+
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #81c784;
+}
+
+.ticker-item .ticker-symbol {
+  color: #e8f5e9;
+  font-family: var(--font-mono);
+}
+
+.ticker-item .ticker-price {
+  color: #4a7c59;
+}
+
+.ticker-item .ticker-change.up {
+  color: #2ecc71;
+}
+
+.ticker-item .ticker-change.down {
+  color: #e74c3c;
+}
+
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* ==================== CARTES BRVM ==================== */
+.theme-brvm .kpi-card::before {
+  background: linear-gradient(90deg, #2ecc71, #f39c12);
+}
+
+.theme-brvm .kpi-card:hover {
+  box-shadow: 0 4px 20px rgba(46, 204, 113, 0.15);
+}
+
+/* ==================== BOUTONS BRVM ==================== */
+.theme-brvm .btn-primary {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+}
+
+.theme-brvm .btn-primary:hover {
+  background: linear-gradient(135deg, #4ade80, #2ecc71);
+  box-shadow: 0 0 20px rgba(46, 204, 113, 0.35);
+}
+
+/* ==================== SECTION PERFORMANCES — ACCENTS ORANGE ==================== */
+.theme-brvm .chart-card.accent-orange {
+  border-left: 3px solid #f39c12;
+}
+
+/* Coloration alternée pour les colonnes de revenus */
+.theme-brvm .ca-highlight {
+  color: #2ecc71;
+}
+
+.theme-brvm .rex-highlight {
+  color: #f39c12;
+}
+
+.theme-brvm .rn-highlight {
+  color: #3498db;
+}
+
+/* ==================== SCORE RING BRVM ==================== */
+.theme-brvm .score-ring-large {
+  filter: drop-shadow(0 0 16px rgba(46, 204, 113, 0.3));
+}
+
+.theme-brvm .score-bar-fill {
+  background: linear-gradient(90deg, #2ecc71, #4ade80);
+}
+
+/* ==================== ALERTE BRVM (couleurs locales) ==================== */
+.brvm-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background-color: rgba(243, 156, 18, 0.08);
+  border: 1px solid rgba(243, 156, 18, 0.25);
+  margin-bottom: 16px;
+}
+
+.brvm-alert-icon {
+  font-size: 16px;
+  color: #f39c12;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.brvm-alert-text {
+  font-size: 13px;
+  color: #81c784;
+  line-height: 1.6;
+}
+
+/* ==================== BANNIÈRE UEMOA ==================== */
+.uemoa-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background-color: rgba(46, 204, 113, 0.08);
+  border: 1px solid rgba(46, 204, 113, 0.2);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  color: #4a7c59;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.uemoa-banner .uemoa-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #2ecc71;
+  animation: pulse 2s ease infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* ==================== SÉLECTEUR SECTEUR BRVM ==================== */
+.sector-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.sector-pill {
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid #1a3a1e;
+  color: #4a7c59;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.sector-pill:hover {
+  border-color: #2ecc71;
+  color: #2ecc71;
+}
+
+.sector-pill.active {
+  background-color: rgba(46, 204, 113, 0.15);
+  border-color: #2ecc71;
+  color: #2ecc71;
+}
+
+/* ==================== COURS HISTORIQUE BRVM ==================== */
+.price-header {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.price-current {
+  font-size: 36px;
+  font-weight: 800;
+  color: #e8f5e9;
+  line-height: 1;
+}
+
+.price-currency {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a7c59;
+  margin-bottom: 4px;
+}
+
+.price-change {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.price-change.up {
+  background-color: rgba(46, 204, 113, 0.15);
+  color: #2ecc71;
+}
+
+.price-change.down {
+  background-color: rgba(231, 76, 60, 0.15);
+  color: #e74c3c;
+}
+
+/* ==================== TABLE COURS BRVM ==================== */
+.theme-brvm .data-table th {
+  background: linear-gradient(90deg, #0d2210, #0f2312);
+}
+
+/* ==================== COLONNE PAIR SECTOR ==================== */
+.peer-name {
+  font-weight: 600;
+  color: #e8f5e9;
+}
+
+.peer-highlight {
+  background-color: rgba(46, 204, 113, 0.08) !important;
+}
+
+.peer-highlight td {
+  color: #81c784 !important;
+}
+
+/* ==================== SYMBOLE MONÉTAIRE FCFA ==================== */
+.fcfa-symbol {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #4a7c59;
+  margin-right: 2px;
+}
+
+/* ==================== ÉTATS DU SCORE BRVM ==================== */
+.theme-brvm .score-reco.acheter {
+  box-shadow: 0 0 16px rgba(46, 204, 113, 0.25);
+}
+
+/* ==================== RESPONSIVE BRVM ==================== */
+@media (max-width: 768px) {
+  .ticker-bar {
+    display: none;
+  }
+
+  .price-current {
+    font-size: 28px;
+  }
+}

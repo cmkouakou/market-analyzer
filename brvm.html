@@ -1,0 +1,814 @@
+<!--
+=============================================================
+  Fichier    : brvm.html
+  Projet     : Market Analyser
+  Description: Module BRVM/UEMOA — Analyse financière des entreprises cotées
+               Thème vert/orange, devise FCFA, 9 entreprises ivoiriennes
+  Auteur     : Claude Marcel
+  Version    : 1.0
+  Date       : 2026-03-07
+  Dépendances: variables.css, base.css, brvm.css, Chart.js 4.x,
+               scoring.js, charts.js, brvm-data.js, brvm-app.js
+=============================================================
+-->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="BRVM Market Analyser — Analyse des actions de la Bourse Régionale de l'UEMOA">
+  <title>UEMOA Market Analyser — BRVM</title>
+
+  <!-- ==================== STYLES ==================== -->
+  <link rel="stylesheet" href="src/css/variables.css">
+  <link rel="stylesheet" href="src/css/base.css">
+  <link rel="stylesheet" href="src/css/brvm.css">
+
+  <!-- Chart.js 4.x depuis CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body class="theme-brvm">
+
+  <!-- ==================== OVERLAY MENU MOBILE ==================== -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ==================== MISE EN PAGE PRINCIPALE ==================== -->
+  <div class="app-layout">
+
+    <!-- ==================== BARRE LATÉRALE ==================== -->
+    <aside class="sidebar" id="sidebar">
+
+      <!-- Logo -->
+      <div class="sidebar-logo">
+        <div class="logo-icon">UA</div>
+        <div class="logo-text">
+          UEMOA MARKET
+          <div class="logo-sub">ANALYSER — BRVM</div>
+        </div>
+      </div>
+
+      <!-- Navigation principale -->
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Analyse</div>
+
+        <div class="nav-item active" data-section="secPerformance">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Performances</span>
+        </div>
+
+        <div class="nav-item" data-section="secActifs">
+          <span class="nav-icon">🏛️</span>
+          <span class="nav-label">Actifs & Bilan</span>
+        </div>
+
+        <div class="nav-item" data-section="secFinancement">
+          <span class="nav-icon">💰</span>
+          <span class="nav-label">Financement</span>
+        </div>
+
+        <div class="nav-item" data-section="secSectoriel">
+          <span class="nav-icon">🏭</span>
+          <span class="nav-label">Secteur</span>
+        </div>
+
+        <div class="nav-section-label">Marché</div>
+
+        <div class="nav-item" data-section="secPrix">
+          <span class="nav-icon">📈</span>
+          <span class="nav-label">Prix & Valorisation</span>
+        </div>
+
+        <div class="nav-item" data-section="secBottomUp">
+          <span class="nav-icon">📰</span>
+          <span class="nav-label">Actualités</span>
+          <span class="nav-badge" id="newsBadge">5</span>
+        </div>
+
+        <div class="nav-item" data-section="secTopDown">
+          <span class="nav-icon">🌍</span>
+          <span class="nav-label">Macro / Top-Down</span>
+        </div>
+
+        <div class="nav-section-label">Décision</div>
+
+        <div class="nav-item" data-section="secSimulateur">
+          <span class="nav-icon">🧮</span>
+          <span class="nav-label">Plan Investissement</span>
+        </div>
+
+        <div class="nav-item" data-section="secScore">
+          <span class="nav-icon">⭐</span>
+          <span class="nav-label">Score & Recommand.</span>
+        </div>
+
+        <div class="nav-section-label">App</div>
+
+        <div class="nav-item" onclick="window.location.href='index.html'">
+          <span class="nav-icon">🔀</span>
+          <span class="nav-label">Changer de module</span>
+        </div>
+      </nav>
+
+      <!-- Pied de barre latérale -->
+      <div class="sidebar-footer">
+        <div class="sidebar-toggle" id="sidebarToggle">
+          <span class="nav-icon">◀</span>
+          <span class="nav-label">Réduire</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==================== CONTENU PRINCIPAL ==================== -->
+    <main class="main-content" id="mainContent">
+
+      <!-- ==================== BARRE TICKER ==================== -->
+      <div class="ticker-bar">
+        <div class="ticker-inner" id="tickerInner">
+          <!-- Rempli dynamiquement par brvm-app.js -->
+        </div>
+      </div>
+
+      <!-- ==================== EN-TÊTE ==================== -->
+      <header class="app-header">
+
+        <!-- Bouton menu mobile -->
+        <button class="mobile-menu-btn" id="btnMenuMobile" aria-label="Ouvrir le menu">☰</button>
+
+        <!-- Sélecteur d'entreprise -->
+        <div class="header-company-selector">
+          <div class="company-select-wrapper">
+            <select class="company-select" id="selectEntreprise" aria-label="Sélectionner une entreprise">
+              <option value="" disabled>Choisir une entreprise...</option>
+            </select>
+          </div>
+
+          <!-- Badge UEMOA -->
+          <div class="uemoa-banner">
+            <span class="uemoa-dot"></span>
+            BRVM Live
+          </div>
+        </div>
+
+        <!-- Sélecteur de période -->
+        <div class="period-selector" role="group" aria-label="Période d'analyse">
+          <button class="period-btn active">10 ans</button>
+          <button class="period-btn">5 ans</button>
+          <button class="period-btn">3 ans</button>
+        </div>
+
+        <!-- Badge devise -->
+        <div class="currency-badge">FCFA</div>
+
+        <!-- Cours actuel -->
+        <div style="font-size:13px; color:var(--text-muted); white-space:nowrap;">
+          <span id="headerCours" style="font-weight:700;color:var(--text-primary);font-family:monospace;">—</span>
+          <span style="margin-left:4px; font-size:11px;" id="headerSecteur"></span>
+        </div>
+
+        <!-- Badge de score -->
+        <div class="score-badge" title="Score global 3P">
+          <div class="score-ring-container">
+            <div class="score-ring" id="headerScoreRing" style="--score:0">
+              <div class="score-ring-inner">
+                <span class="score-value" id="headerScoreValue">—</span>
+                <span class="score-max">/100</span>
+              </div>
+            </div>
+          </div>
+          <span class="score-label">Score 3P</span>
+        </div>
+      </header>
+
+      <!-- ==================== ZONE DE CONTENU ==================== -->
+      <div class="content-area">
+
+        <!-- ======================================================= -->
+        <!-- SECTION 1 — ANALYSE DES PERFORMANCES (10 ANS)           -->
+        <!-- ======================================================= -->
+        <section class="accordion-section" id="secPerformance">
+          <div class="accordion-header" onclick="toggleSection(this)">
+            <div class="accordion-header-left">
+              <span class="accordion-section-icon">📊</span>
+              <div>
+                <div class="accordion-section-title">Analyse des performances (10 ans)</div>
+                <div class="accordion-section-subtitle">Chiffre d'affaires · Résultat d'exploitation · Résultat net</div>
+              </div>
+            </div>
+            <span class="accordion-icon">▶</span>
+          </div>
+          <div class="accordion-body">
+            <div class="accordion-body-inner">
+
+              <!-- KPI Cards -->
+              <div class="kpi-grid">
+                <div class="kpi-card">
+                  <div class="kpi-label">Chiffre d'affaires</div>
+                  <div class="kpi-value ca-highlight" id="kpiCA">—</div>
+                  <div class="kpi-meta">
+                    <span class="kpi-cagr positive" id="kpiCAcagr">—</span>
+                    <span class="kpi-trend up" id="kpiCAtend">↑</span>
+                    <span class="kpi-period">2014 → 2023</span>
+                  </div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-label">Résultat d'exploitation (REX)</div>
+                  <div class="kpi-value rex-highlight" id="kpiREX">—</div>
+                  <div class="kpi-meta">
+                    <span class="kpi-cagr positive" id="kpiREXcagr">—</span>
+                    <span class="kpi-trend up" id="kpiREXtend">↑</span>
+                    <span class="kpi-period">2014 → 2023</span>
+                  </div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-label">Résultat net</div>
+                  <div class="kpi-value rn-highlight" id="kpiRN">—</div>
+                  <div class="kpi-meta">
+                    <span class="kpi-cagr positive" id="kpiRNcagr">—</span>
+                    <span class="kpi-trend up" id="kpiRNtend">↑</span>
+                    <span class="kpi-period">2014 → 2023</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Graphiques linéaires -->
+              <div class="charts-grid">
+                <div class="chart-card">
+                  <div class="chart-card-header">
+                    <div class="chart-title">Chiffre d'affaires</div>
+                    <div class="chart-subtitle">millions FCFA</div>
+                  </div>
+                  <div class="chart-container">
+                    <canvas id="chartCA"></canvas>
+                  </div>
+                </div>
+                <div class="chart-card">
+                  <div class="chart-card-header">
+                    <div class="chart-title">Résultat d'exploitation</div>
+                    <div class="chart-subtitle">millions FCFA</div>
+                  </div>
+                  <div class="chart-container">
+                    <canvas id="chartREX"></canvas>
+                  </div>
+                </div>
+                <div class="chart-card">
+                  <div class="chart-card-header">
+                    <div class="chart-title">Résultat net</div>
+                    <div class="chart-subtitle">millions FCFA</div>
+                  </div>
+                  <div class="chart-container">
+                    <canvas id="chartRN"></canvas>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================================= -->
+        <!-- SECTION 2 — ANALYSE DES ACTIFS                          -->
+        <!-- ======================================================= -->
+        <section class="accordion-section" id="secActifs">
+          <div class="accordion-header" onclick="toggleSection(this)">
+            <div class="accordion-header-left">
+              <span class="accordion-section-icon">🏛️</span>
+              <div>
+                <div class="accordion-section-title">Analyse des actifs</div>
+                <div class="accordion-section-subtitle">Bilan · Capitaux propres · Dettes financières</div>
+              </div>
+            </div>
+            <span class="accordion-icon">▶</span>
+          </div>
+          <div class="accordion-body">
+            <div class="accordion-body-inner">
+
+              <!-- Métriques bilan -->
+              <div class="metrics-grid" style="grid-template-columns: repeat(4, 1fr);">
+                <div class="metric-card">
+                  <div class="metric-label">Actif total</div>
+                  <div class="metric-value" id="actifTotal">—</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Capitaux propres</div>
+                  <div class="metric-value" id="capitauxPropres">—</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Dettes financières</div>
+                  <div class="metric-value" id="dettesFinancieres">—</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Ratio Dettes/CP</div>
+                  <div class="metric-value" id="ratioEndettement">—</div>
+                </div>
+              </div>
+
+              <!-- Graphique bilan multi-courbes -->
+              <div class="chart-card">
+                <div class="chart-card-header">
+                  <div class="chart-title">Évolution du bilan sur 10 ans</div>
+                  <div class="chart-subtitle">millions FCFA</div>
+                </div>
+                <div class="chart-container-lg">
+                  <canvas id="chartActifs"></canvas>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================================= -->
+        <!-- SECTION 3 — ANALYSE DU FINANCEMENT                      -->
+        <!-- ======================================================= -->
+        <section class="accordion-section" id="secFinancement">
+          <div class="accordion-header" onclick="toggleSection(this)">
+            <div class="accordion-header-left">
+              <span class="accordion-section-icon">💰</span>
+              <div>
+                <div class="accordion-section-title">Analyse du financement</div>
+                <div class="accordion-section-subtitle">Marges · Structure de dette · Gearing</div>
+              </div>
+            </div>
+            <span class="accordion-icon">▶</span>
+          </div>
+          <div class="accordion-body">
+            <div class="accordion-body-inner">
+
+              <div class="metrics-grid">
+                <div class="metric-card">
+                  <div class="metric-label">Marge nette 2023</div>
+                  <div class="metric-value" id="margeNetteCourante">—</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Gearing (D/CP+D)</div>
+                  <div class="metric-value" id="gearing">—</div>
+                </div>
+              </div>
+
+              <div class="chart-card">
+                <div class="chart-card-header">
+                  <div class="chart-title">Évolution de la marge nette</div>
+                  <div class="chart-subtitle">en % du chiffre d'affaires</div>
+                </div>
+                <div class="chart-container">
+                  <canvas id="chartMargeNette"></canvas>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================================= -->
+        <!-- SECTION 4 — POSITIONNEMENT SECTORIEL                    -->
+        <!-- ======================================================= -->
+        <section class="accordion-section" id="secSectoriel">
+          <div class="accordion-header" onclick="toggleSection(this)">
+            <div class="accordion-header-left">
+              <span class="accordion-section-icon">🏭</span>
+              <div>
+                <div class="accordion-section-title">Positionnement sectoriel</div>
+                <div class="accordion-section-subtitle">ROE · ROA · Rendement · Comparaison BRVM</div>
+              </div>
+            </div>
+            <span class="accordion-icon">▶</span>
+          </div>
+          <div class="accordion-body">
+            <div class="accordion-body-inner">
+
+              <!-- Métriques de rentabilité -->
+              <div class="metrics-grid">
+                <div class="metric-card">
+                  <div class="metric-label">ROE 2023</div>
+                  <div class="metric-value" id="roeActuel">—</div>
+                  <div class="metric-unit">Retour sur capitaux propres</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">ROA 2023</div>
+                  <div class="metric-value" id="roaActuel">—</div>
+                  <div class="metric-unit">Retour sur actif</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Rendement dividende</div>
+                  <div class="metric-value" id="rendementActuel">—</div>
+                  <div class="metric-unit">Dividende / Cours</div>
+                </div>
+              </div>
+
+              <!-- Graphique ROE historique + Comparaison peers -->
+              <div class="charts-grid-2">
+                <div class="chart-card">
+                  <div class="chart-card-header">
+                    <div class="chart-title">ROE historique (10 ans)</div>
+                    <div class="chart-subtitle">en %</div>
+                  </div>
+                  <div class="chart-container">
+                    <canvas id="chartROE"></canvas>
+                  </div>
+                </div>
+                <div class="chart-card">
+                  <div class="chart-card-header">
+                    <div class="chart-title">Comparaison ROE — Pairs sectoriels</div>
+                    <div class="chart-subtitle">en %</div>
+                  </div>
+                  <div class="chart-container">
+                    <canvas id="chartComparaisonROE"></canvas>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tableau comparatif peers -->
+              <div class="section-header" style="margin-top:16px;">
+                <div class="section-title-text">Comparaison sectorielle BRVM</div>
+              </div>
+              <div class="comparison-table-wrapper">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Entreprise</th>
+                      <th class="text-right">ROE</th>
+                      <th class="text-right">PER</th>
+                      <th class="text-right">Rendement</th>
+                      <th class="text-right">Croissance CA</th>
+                      <th class="text-right">Statut</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tablePairsBody">
+                    <!-- Rempli dynamiquement -->
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================================= -->
+        <!-- SECTION 5 — ANALYSE DU PRIX DE L'ACTION                 -->
+        <!-- ======================================================= -->
+        <section class="accordion-section" id="secPrix">
+          <div class="accordion-header" onclick="toggleSection(this)">
+            <div class="accordion-header-left">
+              <span class="accordion-section-icon">📈</span>
+              <div>
+                <div class="accordion-section-title">Analyse du prix de l'action</div>
+                <div class="accordion-section-subtitle">Cours BRVM · PER · PBR · Règle de Graham · Rendement</div>
+              </div>
+            </div>
+            <span class="accordion-icon">▶</span>
+          </div>
+          <div class="accordion-body">
+            <div class="accordion-body-inner">
+
+              <!-- En-tête du prix -->
+              <div class="price-header">
+                <div class="price-current" id="prixCourant">—</div>
+                <div class="price-currency">FCFA</div>
+                <div class="price-change up">+1.4%</div>
+              </div>
+
+              <!-- Graphique cours historique 12 mois -->
+              <div class="chart-card" style="margin-bottom:20px;">
+                <div class="chart-card-header">
+                  <div class="chart-title">Cours sur 12 mois</div>
+                  <div class="chart-subtitle">FCFA — données mensuelles</div>
+                </div>
+                <div class="chart-container">
+                  <canvas id="chartCours"></canvas>
+                </div>
+              </div>
+
+              <!-- Métriques de valorisation -->
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
+                <div class="metric-card">
+                  <div class="metric-label">PER</div>
+                  <div class="metric-value" id="perAffiche">—</div>
+                  <div class="metric-unit" id="scorePER"></div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">PBR</div>
+                  <div class="metric-value" id="pbrAffiche">—</div>
+                  <div class="metric-unit" id="scorePBR"></div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Dividende</div>
+                  <div class="metric-value" id="dividendeActuel">—</div>
+                  <div class="metric-unit">par action</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Rendement</div>
+                  <div class="metric-value" id="rendementAffiche">—</div>
+                  <div class="metric-unit">dividende / cours</div>
+                </div>
+              </div>
+
+              <!-- Jauges PER et PBR -->
+              <div class="gauge-grid" style="margin-bottom:20px;">
+                <div class="gauge-card">
+                  <div class="gauge-title">PER — Price/Earnings Ratio</div>
+                  <div class="gauge-container">
+                    <canvas id="gaugePER"></canvas>
+                  </div>
+                  <div class="gauge-meta">
+                    <div class="gauge-value-text" id="perAfficheGauge"></div>
+                    <div class="gauge-score-text">≤10 = 10pts · 10-15 = 8pts · 15-22 = 5pts · >22 = 0pt</div>
+                  </div>
+                </div>
+                <div class="gauge-card">
+                  <div class="gauge-title">PBR — Price/Book Ratio</div>
+                  <div class="gauge-container">
+                    <canvas id="gaugePBR"></canvas>
+                  </div>
+                  <div class="gauge-meta">
+                    <div class="gauge-value-text" id="pbrAfficheGauge"></div>
+                    <div class="gauge-score-text">≤1 = 10pts · 1-2 = 8pts · 2-3 = 5pts · >3 = 0pt</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Règle de Graham -->
+              <div id="grahamRule" class="graham-rule">
+                <!-- Rempli dynamiquement -->
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================================= -->
+        <!-- SECTION 6 — PERSPECTIVES BOTTOM-UP (ACTUALITÉS)         -->
+        <!-- ======================================================= -->
+        <section class="accordion-section" id="secBottomUp">
+          <div class="accordion-header" onclick="toggleSection(this)">
+            <div class="accordion-header-left">
+              <span class="accordion-section-icon">📰</span>
+              <div>
+                <div class="accordion-section-title">Perspectives Bottom-Up</div>
+                <div class="accordion-section-subtitle">Actualités et événements spécifiques à l'entreprise</div>
+              </div>
+            </div>
+            <span class="accordion-icon">▶</span>
+          </div>
+          <div class="accordion-body">
+            <div class="accordion-body-inner">
+
+              <div class="section-header">
+                <div class="section-title-text">Actualités récentes</div>
+                <div style="font-size:12px;color:var(--text-muted);">
+                  Score Bottom-Up : <span style="color:var(--accent-primary);font-weight:700;" id="scoreBottomUp">—</span>
+                </div>
+              </div>
+
+              <!-- Légende des impacts -->
+              <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
+                <span style="font-size:12px;color:var(--text-muted);">
+                  📈 <span style="color:#2ecc71;">Positif +3 pts</span> &nbsp;
+                  📰 <span style="color:var(--text-muted);">Neutre +1 pt</span> &nbsp;
+                  📉 <span style="color:#e74c3c;">Négatif −2 pts</span>
+                </span>
+              </div>
+
+              <!-- Flux d'actualités -->
+              <div class="news-feed" id="newsFeed">
+                <!-- Rempli dynamiquement -->
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================================= -->
+        <!-- SECTION 7 — PERSPECTIVES TOP-DOWN                        -->
+        <!-- ======================================================= -->
+        <section class="accordion-section" id="secTopDown">
+          <div class="accordion-header" onclick="toggleSection(this)">
+            <div class="accordion-header-left">
+              <span class="accordion-section-icon">🌍</span>
+              <div>
+                <div class="accordion-section-title">Perspectives Top-Down</div>
+                <div class="accordion-section-subtitle">Macroéconomie UEMOA · Dynamique sectorielle · Position concurrentielle</div>
+              </div>
+            </div>
+            <span class="accordion-icon">▶</span>
+          </div>
+          <div class="accordion-body">
+            <div class="accordion-body-inner">
+
+              <div class="section-header">
+                <div class="section-title-text">Indicateurs macro et sectoriels</div>
+                <div style="font-size:12px;color:var(--text-muted);">
+                  Score Top-Down : <span style="color:var(--accent-primary);font-weight:700;" id="scoreTopDown">—</span>
+                </div>
+              </div>
+
+              <div class="topdown-grid">
+
+                <!-- Économie -->
+                <div class="topdown-card" id="tdEconomie">
+                  <div class="topdown-icon">🌍</div>
+                  <div class="topdown-title">Macroéconomie UEMOA</div>
+                  <div class="topdown-value" id="tdEconomiePts">—</div>
+                  <div style="font-size:12px;color:var(--text-secondary);margin-top:8px;line-height:1.5;" id="tdEconomieTxt">—</div>
+                </div>
+
+                <!-- Secteur -->
+                <div class="topdown-card" id="tdSecteur">
+                  <div class="topdown-icon">🏭</div>
+                  <div class="topdown-title">Dynamique sectorielle</div>
+                  <div class="topdown-value" id="tdSecteurPts">—</div>
+                  <div style="font-size:12px;color:var(--text-secondary);margin-top:8px;line-height:1.5;" id="tdSecteurTxt">—</div>
+                </div>
+
+                <!-- Entreprise -->
+                <div class="topdown-card" id="tdEntreprise">
+                  <div class="topdown-icon">🏢</div>
+                  <div class="topdown-title">Position concurrentielle</div>
+                  <div class="topdown-value" id="tdEntreprisePts">—</div>
+                  <div style="font-size:12px;color:var(--text-secondary);margin-top:8px;line-height:1.5;" id="tdEntrepriseTxt">—</div>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================================= -->
+        <!-- SECTION 8 — PLAN D'INVESTISSEMENT (SIMULATEUR)          -->
+        <!-- ======================================================= -->
+        <section class="accordion-section" id="secSimulateur">
+          <div class="accordion-header" onclick="toggleSection(this)">
+            <div class="accordion-header-left">
+              <span class="accordion-section-icon">🧮</span>
+              <div>
+                <div class="accordion-section-title">Plan d'investissement</div>
+                <div class="accordion-section-subtitle">Simulation de rendement sur horizon défini</div>
+              </div>
+            </div>
+            <span class="accordion-icon">▶</span>
+          </div>
+          <div class="accordion-body">
+            <div class="accordion-body-inner">
+
+              <div class="simulator-grid">
+
+                <!-- Formulaire de simulation -->
+                <div class="simulator-form">
+                  <div class="form-group">
+                    <label class="form-label" for="simMontant">Montant initial (FCFA)</label>
+                    <input type="number" class="form-input" id="simMontant"
+                      value="1000000" min="100000" step="100000"
+                      placeholder="Ex: 1 000 000 FCFA">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="simHorizon">Horizon d'investissement (années)</label>
+                    <input type="number" class="form-input" id="simHorizon"
+                      value="5" min="1" max="20" step="1">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="simProfil">Profil d'investisseur</label>
+                    <select class="form-input form-select" id="simProfil">
+                      <option value="prudent">🛡️ Prudent (3% / an)</option>
+                      <option value="equilibre" selected>⚖️ Équilibré (6% / an)</option>
+                      <option value="dynamique">🚀 Dynamique (9% / an)</option>
+                    </select>
+                  </div>
+                  <div class="brvm-alert">
+                    <span class="brvm-alert-icon">ℹ️</span>
+                    <span class="brvm-alert-text">
+                      La simulation est basée sur les hypothèses de croissance du profil choisi
+                      et le rendement dividende actuel de l'entreprise. Ne constitue pas un
+                      conseil en investissement.
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Résultats de la simulation -->
+                <div class="simulator-results">
+                  <div class="result-card">
+                    <div class="result-label">Valeur finale estimée</div>
+                    <div class="result-value" id="simValeurFinale">—</div>
+                    <div class="result-note">Hors dividendes</div>
+                  </div>
+                  <div class="result-card">
+                    <div class="result-label">Dividendes cumulés estimés</div>
+                    <div class="result-value" id="simDividendesCumules">—</div>
+                    <div class="result-note">Sur la période simulée</div>
+                  </div>
+                  <div class="result-card">
+                    <div class="result-label">Valeur totale (+ dividendes)</div>
+                    <div class="result-value" id="simValeurPlusDividende">—</div>
+                  </div>
+                  <div class="result-card" style="border-left: 3px solid var(--accent-primary);">
+                    <div class="result-label">Rendement total estimé</div>
+                    <div class="result-value" style="color:var(--accent-primary);" id="simRendementTotal">—</div>
+                    <div class="result-note">Capital + dividendes / investissement initial</div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================================= -->
+        <!-- SECTION 9 — SCORE & RECOMMANDATION                      -->
+        <!-- ======================================================= -->
+        <section class="accordion-section" id="secScore">
+          <div class="accordion-header" onclick="toggleSection(this)">
+            <div class="accordion-header-left">
+              <span class="accordion-section-icon">⭐</span>
+              <div>
+                <div class="accordion-section-title">Score & Recommandation</div>
+                <div class="accordion-section-subtitle">Score 3P global et conseil d'investissement</div>
+              </div>
+            </div>
+            <span class="accordion-icon">▶</span>
+          </div>
+          <div class="accordion-body">
+            <div class="accordion-body-inner">
+
+              <div class="score-section">
+
+                <!-- Score ring principal -->
+                <div class="score-display">
+                  <div class="score-ring-large" id="scoreRingLarge" style="--score:0">
+                    <div class="score-ring-large-inner">
+                      <div class="score-number" id="scoreNumber">—</div>
+                      <div class="score-total">/100</div>
+                    </div>
+                  </div>
+                  <div class="score-reco acheter" id="scoreReco">—</div>
+                </div>
+
+                <!-- Décomposition par pilier -->
+                <div class="score-breakdown">
+                  <div class="section-title-text" style="margin-bottom:12px;">Décomposition du score</div>
+
+                  <div class="score-category">
+                    <div class="score-cat-header">
+                      <span class="score-cat-name">📊 Portrait / Performance</span>
+                      <span class="score-cat-value" id="valPortrait">—</span>
+                    </div>
+                    <div class="score-bar-track">
+                      <div class="score-bar-fill" id="barPortrait" style="width:0%"></div>
+                    </div>
+                  </div>
+
+                  <div class="score-category">
+                    <div class="score-cat-header">
+                      <span class="score-cat-name">🔭 Perspectives</span>
+                      <span class="score-cat-value" id="valPerspectives">—</span>
+                    </div>
+                    <div class="score-bar-track">
+                      <div class="score-bar-fill" id="barPerspectives" style="width:0%"></div>
+                    </div>
+                  </div>
+
+                  <div class="score-category">
+                    <div class="score-cat-header">
+                      <span class="score-cat-name">💲 Prix / Valorisation</span>
+                      <span class="score-cat-value" id="valPrix">—</span>
+                    </div>
+                    <div class="score-bar-track">
+                      <div class="score-bar-fill" id="barPrix" style="width:0%"></div>
+                    </div>
+                  </div>
+
+                  <!-- Justification -->
+                  <div class="score-justification">
+                    <div class="score-just-title">Justification de la recommandation</div>
+                    <div class="score-just-text" id="scoreJustification">
+                      Sélectionnez une entreprise pour voir la recommandation.
+                    </div>
+                  </div>
+
+                  <!-- Légende des recommandations -->
+                  <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;">
+                    <span class="badge badge-success">70-100 → Acheter</span>
+                    <span class="badge badge-warning">40-69 → Surveiller</span>
+                    <span class="badge badge-danger">0-39 → Éviter</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+      </div><!-- fin .content-area -->
+    </main><!-- fin .main-content -->
+  </div><!-- fin .app-layout -->
+
+  <!-- ==================== SCRIPTS ==================== -->
+  <!-- Moteur de scoring -->
+  <script src="src/js/scoring.js"></script>
+  <!-- Utilitaires graphiques -->
+  <script src="src/js/charts.js"></script>
+  <!-- Données BRVM -->
+  <script src="src/js/brvm-data.js"></script>
+  <!-- Application principale BRVM -->
+  <script src="src/js/brvm-app.js"></script>
+
+</body>
+</html>

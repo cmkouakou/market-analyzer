@@ -1,0 +1,150 @@
+/*
+=============================================================
+  Fichier    : variables.css
+  Projet     : Market Analyser
+  Description: Variables CSS globales pour les deux thèmes (BRVM et International)
+  Auteur     : Claude Marcel
+  Version    : 1.0
+  Date       : 2026-03-07
+  Dépend de  : (aucun)
+=============================================================
+*/
+
+/* ==================== THÈME BRVM (vert/orange) ==================== */
+.theme-brvm {
+  --bg-main: #0a1a0b;
+  --bg-sidebar: #0d2210;
+  --bg-card: #0f2312;
+  --bg-card-hover: #142b16;
+  --bg-header: #0d2210;
+  --bg-input: #0a1a0b;
+  --bg-table-row: #0f2312;
+  --bg-table-row-alt: #112614;
+  --bg-table-header: #0d2210;
+  --bg-tooltip: #1a3320;
+  --bg-dropdown: #0d2210;
+  --bg-modal: #0f2312;
+
+  --accent-primary: #2ecc71;
+  --accent-primary-light: #4ade80;
+  --accent-primary-dark: #27ae60;
+  --accent-secondary: #f39c12;
+  --accent-secondary-light: #fb923c;
+  --accent-secondary-dark: #e67e22;
+  --accent-danger: #e74c3c;
+  --accent-info: #3498db;
+
+  --text-primary: #e8f5e9;
+  --text-secondary: #81c784;
+  --text-muted: #4a7c59;
+  --text-accent: #2ecc71;
+  --text-orange: #f39c12;
+  --text-danger: #e74c3c;
+
+  --border-color: #1a3a1e;
+  --border-color-light: #1f4424;
+  --border-accent: #2ecc71;
+
+  --score-bg: #1a3320;
+  --score-ring-color: #2ecc71;
+  --score-ring-track: #1a3320;
+
+  --chart-grid: rgba(46, 204, 113, 0.1);
+  --chart-primary: #2ecc71;
+  --chart-secondary: #f39c12;
+  --chart-tertiary: #3498db;
+
+  --sidebar-width: 240px;
+  --sidebar-width-collapsed: 64px;
+  --header-height: 64px;
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.3);
+  --shadow-accent: 0 0 20px rgba(46, 204, 113, 0.2);
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  --transition: 0.25s ease;
+  --transition-slow: 0.4s ease;
+}
+
+/* ==================== THÈME INTERNATIONAL (bleu sombre) ==================== */
+.theme-intl {
+  --bg-main: #0d1117;
+  --bg-sidebar: #161b22;
+  --bg-card: #1c2128;
+  --bg-card-hover: #21262d;
+  --bg-header: #161b22;
+  --bg-input: #0d1117;
+  --bg-table-row: #1c2128;
+  --bg-table-row-alt: #1e242c;
+  --bg-table-header: #161b22;
+  --bg-tooltip: #21262d;
+  --bg-dropdown: #161b22;
+  --bg-modal: #1c2128;
+
+  --accent-primary: #58a6ff;
+  --accent-primary-light: #79c0ff;
+  --accent-primary-dark: #388bfd;
+  --accent-secondary: #bc8cff;
+  --accent-secondary-light: #d2a8ff;
+  --accent-secondary-dark: #a371f7;
+  --accent-danger: #f85149;
+  --accent-info: #39d353;
+
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #484f58;
+  --text-accent: #58a6ff;
+  --text-orange: #f0883e;
+  --text-danger: #f85149;
+
+  --border-color: #30363d;
+  --border-color-light: #3d444d;
+  --border-accent: #58a6ff;
+
+  --score-bg: #1c2128;
+  --score-ring-color: #58a6ff;
+  --score-ring-track: #30363d;
+
+  --chart-grid: rgba(88, 166, 255, 0.1);
+  --chart-primary: #58a6ff;
+  --chart-secondary: #bc8cff;
+  --chart-tertiary: #39d353;
+
+  --sidebar-width: 240px;
+  --sidebar-width-collapsed: 64px;
+  --header-height: 64px;
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.4);
+  --shadow-accent: 0 0 20px rgba(88, 166, 255, 0.2);
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  --transition: 0.25s ease;
+  --transition-slow: 0.4s ease;
+}
+
+/* ==================== THÈME PAGE D'ACCUEIL ==================== */
+:root {
+  --landing-bg: #050d14;
+  --landing-card-brvm: linear-gradient(135deg, #0a1a0b 0%, #0d2210 100%);
+  --landing-card-intl: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+  --landing-accent-brvm: #2ecc71;
+  --landing-accent-intl: #58a6ff;
+
+  --font-primary: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
+
+  --z-sidebar: 100;
+  --z-header: 200;
+  --z-modal: 300;
+  --z-tooltip: 400;
+}

@@ -1,0 +1,602 @@
+<!--
+=============================================================
+  Fichier    : index.html
+  Projet     : Market Analyser
+  Description: Page d'accueil — Sélection du module d'analyse (BRVM ou International)
+  Auteur     : Claude Marcel
+  Version    : 1.0
+  Date       : 2026-03-07
+  Dépendances: (aucune)
+=============================================================
+-->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Market Analyser — Plateforme d'analyse financière BRVM et marchés internationaux">
+  <title>Market Analyser — Choisissez votre module</title>
+  <style>
+    /* ==================== RESET & BASE ==================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --font: 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+      --mono: 'Consolas', 'Monaco', monospace;
+      --bg: #050d14;
+      --brvm-green: #2ecc71;
+      --brvm-orange: #f39c12;
+      --intl-blue: #58a6ff;
+      --intl-purple: #bc8cff;
+      --text: #e6edf3;
+      --text-muted: #484f58;
+      --border: #21262d;
+      --transition: 0.3s ease;
+    }
+
+    html { font-size: 16px; }
+
+    body {
+      font-family: var(--font);
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* ==================== FOND ANIMÉ ==================== */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 20% 30%, rgba(46, 204, 113, 0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 70%, rgba(88, 166, 255, 0.06) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Grille de fond */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ==================== CONTENU ==================== */
+    .landing-container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    /* ==================== EN-TÊTE ==================== */
+    .landing-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .landing-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .landing-logo-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #2ecc71, #58a6ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 800;
+      color: #fff;
+      box-shadow: 0 0 30px rgba(46, 204, 113, 0.3);
+    }
+
+    .landing-logo-text {
+      text-align: left;
+    }
+
+    .landing-logo-text .main-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #2ecc71, #58a6ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .landing-logo-text .sub-title {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      font-weight: 500;
+    }
+
+    .landing-tagline {
+      font-size: 15px;
+      color: var(--text-muted);
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ==================== BADGE MÉTHODOLOGIE ==================== */
+    .methodology-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border: 1px solid rgba(88, 166, 255, 0.2);
+      border-radius: 999px;
+      background: rgba(88, 166, 255, 0.06);
+      font-size: 12px;
+      color: var(--intl-blue);
+      font-weight: 600;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .methodology-badge::before {
+      content: '⚡';
+      font-size: 12px;
+    }
+
+    /* ==================== CARTES MODULES ==================== */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 48px;
+    }
+
+    .module-card {
+      position: relative;
+      text-decoration: none;
+      display: block;
+      border-radius: 16px;
+      overflow: hidden;
+      transition: all var(--transition);
+      cursor: pointer;
+    }
+
+    .module-card-inner {
+      padding: 40px 36px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      height: 100%;
+      position: relative;
+      transition: all var(--transition);
+    }
+
+    /* Carte BRVM */
+    .module-card.brvm .module-card-inner {
+      background: linear-gradient(160deg, #0a1a0b 0%, #0d2210 60%, #0a1a0b 100%);
+      border-color: rgba(46, 204, 113, 0.15);
+    }
+
+    .module-card.brvm:hover .module-card-inner {
+      border-color: rgba(46, 204, 113, 0.5);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(46, 204, 113, 0.15);
+    }
+
+    /* Carte International */
+    .module-card.intl .module-card-inner {
+      background: linear-gradient(160deg, #0d1117 0%, #161b22 60%, #0d1117 100%);
+      border-color: rgba(88, 166, 255, 0.15);
+    }
+
+    .module-card.intl:hover .module-card-inner {
+      border-color: rgba(88, 166, 255, 0.5);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(88, 166, 255, 0.12);
+    }
+
+    /* Barre de couleur en haut */
+    .module-card-inner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      border-radius: 16px 16px 0 0;
+    }
+
+    .module-card.brvm .module-card-inner::before {
+      background: linear-gradient(90deg, #2ecc71, #f39c12);
+    }
+
+    .module-card.intl .module-card-inner::before {
+      background: linear-gradient(90deg, #58a6ff, #bc8cff);
+    }
+
+    /* Icône module */
+    .module-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 24px;
+    }
+
+    .module-card.brvm .module-icon {
+      background: linear-gradient(135deg, rgba(46, 204, 113, 0.2), rgba(243, 156, 18, 0.1));
+      border: 1px solid rgba(46, 204, 113, 0.25);
+    }
+
+    .module-card.intl .module-icon {
+      background: linear-gradient(135deg, rgba(88, 166, 255, 0.2), rgba(188, 140, 255, 0.1));
+      border: 1px solid rgba(88, 166, 255, 0.25);
+    }
+
+    /* Nom du module */
+    .module-name {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+    }
+
+    .module-card.brvm .module-name {
+      color: #e8f5e9;
+    }
+
+    .module-card.intl .module-name {
+      color: #e6edf3;
+    }
+
+    .module-subtitle {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 16px;
+    }
+
+    .module-card.brvm .module-subtitle { color: #4a7c59; }
+    .module-card.intl .module-subtitle { color: #484f58; }
+
+    /* Description */
+    .module-desc {
+      font-size: 14px;
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+
+    .module-card.brvm .module-desc { color: #81c784; }
+    .module-card.intl .module-desc { color: #8b949e; }
+
+    /* Tags */
+    .module-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 28px;
+    }
+
+    .tag {
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .module-card.brvm .tag {
+      background: rgba(46, 204, 113, 0.1);
+      color: #2ecc71;
+      border: 1px solid rgba(46, 204, 113, 0.2);
+    }
+
+    .module-card.intl .tag {
+      background: rgba(88, 166, 255, 0.1);
+      color: #58a6ff;
+      border: 1px solid rgba(88, 166, 255, 0.2);
+    }
+
+    /* Bouton CTA */
+    .module-cta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all var(--transition);
+    }
+
+    .module-card.brvm .module-cta {
+      background: rgba(46, 204, 113, 0.12);
+      color: #2ecc71;
+      border: 1px solid rgba(46, 204, 113, 0.25);
+    }
+
+    .module-card.brvm:hover .module-cta {
+      background: rgba(46, 204, 113, 0.2);
+    }
+
+    .module-card.intl .module-cta {
+      background: rgba(88, 166, 255, 0.12);
+      color: #58a6ff;
+      border: 1px solid rgba(88, 166, 255, 0.25);
+    }
+
+    .module-card.intl:hover .module-cta {
+      background: rgba(88, 166, 255, 0.2);
+    }
+
+    .cta-arrow {
+      font-size: 18px;
+      transition: transform var(--transition);
+    }
+
+    .module-card:hover .cta-arrow {
+      transform: translateX(4px);
+    }
+
+    /* ==================== SECTION MÉTHODOLOGIE ==================== */
+    .methodology-section {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px 36px;
+      margin-bottom: 32px;
+    }
+
+    .methodology-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .pillar {
+      text-align: center;
+      padding: 20px 16px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+    }
+
+    .pillar-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .pillar-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .pillar-pts {
+      font-size: 22px;
+      font-weight: 800;
+      font-family: var(--mono);
+      margin-bottom: 8px;
+    }
+
+    .pillar:nth-child(1) .pillar-pts { color: var(--brvm-green); }
+    .pillar:nth-child(2) .pillar-pts { color: var(--intl-blue); }
+    .pillar:nth-child(3) .pillar-pts { color: var(--brvm-orange); }
+
+    .pillar-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* ==================== PIED DE PAGE ==================== */
+    .landing-footer {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.8;
+    }
+
+    .landing-footer a {
+      color: var(--intl-blue);
+      text-decoration: none;
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 720px) {
+      .modules-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .pillars-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .module-card-inner {
+        padding: 28px 24px;
+      }
+
+      .landing-header {
+        margin-bottom: 40px;
+      }
+
+      .methodology-section {
+        padding: 24px 20px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 24px 16px;
+      }
+
+      .landing-logo-text .main-title {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== CONTENEUR PRINCIPAL ==================== -->
+  <div class="landing-container">
+
+    <!-- ==================== EN-TÊTE ==================== -->
+    <header class="landing-header">
+      <div class="landing-logo">
+        <div class="landing-logo-icon">MA</div>
+        <div class="landing-logo-text">
+          <div class="main-title">MARKET ANALYSER</div>
+          <div class="sub-title">Plateforme d'analyse financière 3P</div>
+        </div>
+      </div>
+
+      <div class="methodology-badge">Méthodologie 3P — Portrait · Perspectives · Prix</div>
+
+      <p class="landing-tagline">
+        Analysez et scorez les actions de la BRVM et des marchés internationaux
+        grâce à la méthodologie 3P : données fondamentales sur 10 ans, perspectives
+        macro/sectorielles et valorisation boursière.
+      </p>
+    </header>
+
+    <!-- ==================== CARTES DES MODULES ==================== -->
+    <div class="modules-grid">
+
+      <!-- Carte BRVM -->
+      <a href="brvm.html" class="module-card brvm">
+        <div class="module-card-inner">
+          <div class="module-icon">🌍</div>
+          <div class="module-name">BRVM / UEMOA</div>
+          <div class="module-subtitle">Bourse Régionale d'Afrique de l'Ouest</div>
+          <p class="module-desc">
+            Analysez les entreprises cotées à la BRVM en Côte d'Ivoire, Sénégal,
+            Mali et toute la zone UEMOA. Valorisations en FCFA, données sectorielles
+            et comparaisons régionales.
+          </p>
+          <div class="module-tags">
+            <span class="tag">FCFA</span>
+            <span class="tag">Côte d'Ivoire</span>
+            <span class="tag">Sénégal</span>
+            <span class="tag">9 entreprises</span>
+            <span class="tag">UEMOA</span>
+          </div>
+          <div class="module-cta">
+            <span>Accéder au module BRVM</span>
+            <span class="cta-arrow">→</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Carte International -->
+      <a href="international.html" class="module-card intl">
+        <div class="module-card-inner">
+          <div class="module-icon">🌐</div>
+          <div class="module-name">International</div>
+          <div class="module-subtitle">NYSE · NASDAQ · Euronext</div>
+          <p class="module-desc">
+            Évaluez les géants des marchés mondiaux : Apple, Microsoft, LVMH, Tesla,
+            TotalEnergies, BNP Paribas. Données en USD et EUR, analyse comparative
+            avec les pairs sectoriels.
+          </p>
+          <div class="module-tags">
+            <span class="tag">USD · EUR</span>
+            <span class="tag">NASDAQ</span>
+            <span class="tag">Euronext</span>
+            <span class="tag">6 entreprises</span>
+            <span class="tag">Monde</span>
+          </div>
+          <div class="module-cta">
+            <span>Accéder au module International</span>
+            <span class="cta-arrow">→</span>
+          </div>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- ==================== PRÉSENTATION DE LA MÉTHODOLOGIE ==================== -->
+    <div class="methodology-section">
+      <div class="methodology-title">Méthodologie de scoring 3P (100 points)</div>
+      <div class="pillars-grid">
+
+        <div class="pillar">
+          <div class="pillar-icon">📊</div>
+          <div class="pillar-name">Portrait / Performance</div>
+          <div class="pillar-pts">40 pts</div>
+          <div class="pillar-desc">
+            CAGR chiffre d'affaires sur 10 ans,
+            régularité du résultat d'exploitation
+            et du résultat net
+          </div>
+        </div>
+
+        <div class="pillar">
+          <div class="pillar-icon">🔭</div>
+          <div class="pillar-name">Perspectives</div>
+          <div class="pillar-pts">30 pts</div>
+          <div class="pillar-desc">
+            Actualités Bottom-Up (impact par news),
+            contexte macro Top-Down (économie,
+            secteur, position concurrentielle)
+          </div>
+        </div>
+
+        <div class="pillar">
+          <div class="pillar-icon">💲</div>
+          <div class="pillar-name">Prix / Valorisation</div>
+          <div class="pillar-pts">30 pts</div>
+          <div class="pillar-desc">
+            PER, PBR, règle de Graham (PER×PBR &lt; 22.5),
+            rendement du dividende
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==================== PIED DE PAGE ==================== -->
+    <footer class="landing-footer">
+      <p>Market Analyser v1.0 — Analyse financière basée sur la méthodologie 3P</p>
+      <p style="margin-top:6px; opacity: 0.6;">
+        Les données affichées sont simulées à des fins de démonstration.<br>
+        Ne constitue pas un conseil en investissement.
+      </p>
+    </footer>
+
+  </div>
+
+</body>
+</html>
