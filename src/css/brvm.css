@@ -292,6 +292,284 @@ body.theme-brvm {
   box-shadow: 0 0 16px rgba(46, 204, 113, 0.25);
 }
 
+/* ==================== INDICATEUR SOURCE DONNÉES ==================== */
+.data-source-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.data-source-indicator .dot,
+.api-info-row .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted, #555);
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+
+.data-source-indicator .dot.live,
+.api-info-row .dot.live {
+  background: var(--accent-green, #2ecc71);
+  box-shadow: 0 0 6px var(--accent-green, #2ecc71);
+}
+
+.data-source-indicator .dot.mock,
+.api-info-row .dot.mock {
+  background: var(--accent-orange, #f39c12);
+}
+
+.data-source-indicator .dot.error {
+  background: #e74c3c;
+}
+
+/* ==================== BOUTON ACTUALISER ==================== */
+.refresh-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 6px 10px;
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.refresh-btn:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.refresh-btn.spinning {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ==================== PANNEAU CONFIGURATION API ==================== */
+.api-settings-panel {
+  position: fixed;
+  top: 0;
+  right: -420px;
+  width: 380px;
+  height: 100vh;
+  background: var(--bg-card);
+  border-left: 1px solid var(--border-color);
+  z-index: 1000;
+  transition: right 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.4);
+}
+
+.api-settings-panel.visible {
+  right: 0;
+}
+
+.api-settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  background: var(--bg-card);
+  z-index: 1;
+}
+
+.api-settings-header h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.api-settings-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+
+.api-settings-close:hover {
+  color: var(--text-primary);
+}
+
+/* Corps du panneau API */
+.api-settings-panel .form-group {
+  padding: 20px 20px 0;
+}
+
+.api-settings-panel label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.api-input {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.api-input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.api-settings-panel small {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.api-settings-panel small a {
+  color: var(--accent-primary);
+  text-decoration: none;
+}
+
+.api-settings-actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 20px 0;
+}
+
+.btn-api {
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: none;
+  transition: all 0.2s;
+}
+
+.btn-api-primary {
+  background: var(--accent-primary);
+  color: #000;
+  font-weight: 600;
+}
+
+.btn-api-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-api-secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-api-secondary:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.btn-api-danger {
+  background: transparent;
+  color: #e74c3c;
+  border: 1px solid #e74c3c;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.btn-api-danger:hover {
+  background: rgba(231, 76, 60, 0.1);
+}
+
+/* Résultat du test API */
+.api-test-result {
+  margin: 12px 20px 0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  display: none;
+}
+
+.api-test-result.success {
+  background: rgba(46, 204, 113, 0.1);
+  color: #2ecc71;
+  display: block;
+}
+
+.api-test-result.error {
+  background: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+  display: block;
+}
+
+/* Séparateur */
+.api-divider {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 16px 20px;
+}
+
+/* Statistiques d'utilisation */
+.api-stats {
+  padding: 0 20px;
+}
+
+.api-stats-title,
+.api-info-title {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.api-stats-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.api-stats-value {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* Informations sur les sources */
+.api-info {
+  padding: 0 20px 20px;
+}
+
+.api-info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
 /* ==================== RESPONSIVE BRVM ==================== */
 @media (max-width: 768px) {
   .ticker-bar {
@@ -300,5 +578,10 @@ body.theme-brvm {
 
   .price-current {
     font-size: 28px;
+  }
+
+  .api-settings-panel {
+    width: 100%;
+    right: -100%;
   }
 }

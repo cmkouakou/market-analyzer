@@ -8,7 +8,9 @@
   Version    : 1.0
   Date       : 2026-03-07
   Dépendances: variables.css, base.css, brvm.css, Chart.js 4.x,
-               scoring.js, charts.js, brvm-data.js, brvm-app.js
+               scoring.js, charts.js, brvm-data.js, brvm-app.js,
+               api-config.js, api-cache.js, brvm-api.js
+  Version    : 1.1
 =============================================================
 -->
 <!DOCTYPE html>
@@ -26,6 +28,11 @@
 
   <!-- Chart.js 4.x depuis CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- ==================== COUCHE API ==================== -->
+  <script src="src/js/api-config.js"></script>
+  <script src="src/js/api-cache.js"></script>
+  <script src="src/js/brvm-api.js"></script>
 </head>
 <body class="theme-brvm">
 
@@ -107,6 +114,11 @@
           <span class="nav-icon">🔀</span>
           <span class="nav-label">Changer de module</span>
         </div>
+
+        <div class="nav-item" onclick="toggleApiSettings()" id="btnApiSettings">
+          <span class="nav-icon">⚙️</span>
+          <span class="nav-label">Configuration API</span>
+        </div>
       </nav>
 
       <!-- Pied de barre latérale -->
@@ -164,6 +176,17 @@
           <span id="headerCours" style="font-weight:700;color:var(--text-primary);font-family:monospace;">—</span>
           <span style="margin-left:4px; font-size:11px;" id="headerSecteur"></span>
         </div>
+
+        <!-- Indicateur de source des données -->
+        <div class="data-source-indicator" id="dataSourceIndicator" title="Source des données">
+          <span class="dot mock"></span>
+          <span class="label">Données simulées</span>
+        </div>
+
+        <!-- Bouton actualiser -->
+        <button class="refresh-btn" id="btnActualiser" onclick="actualiserDonnees()" title="Actualiser les données">
+          ↻
+        </button>
 
         <!-- Badge de score -->
         <div class="score-badge" title="Score global 3P">
@@ -799,6 +822,74 @@
       </div><!-- fin .content-area -->
     </main><!-- fin .main-content -->
   </div><!-- fin .app-layout -->
+
+  <!-- ==================== PANNEAU CONFIGURATION API ==================== -->
+  <div class="api-settings-panel" id="apiSettingsPanel">
+    <div class="api-settings-header">
+      <h3>Configuration API</h3>
+      <button class="api-settings-close" onclick="toggleApiSettings()" aria-label="Fermer">✕</button>
+    </div>
+
+    <!-- Clé API EODHD -->
+    <div class="form-group">
+      <label for="eodhdTokenInput">Clé API EODHD</label>
+      <input
+        type="text"
+        id="eodhdTokenInput"
+        class="api-input"
+        placeholder="Entrez votre clé API..."
+        autocomplete="off"
+      >
+      <small>
+        Obtenez une clé gratuite sur
+        <a href="https://eodhd.com" target="_blank" rel="noopener">eodhd.com</a>
+        (20 appels/jour en plan gratuit)
+      </small>
+    </div>
+
+    <!-- Boutons d'action -->
+    <div class="api-settings-actions">
+      <button class="btn-api btn-api-primary" onclick="saveApiKey()">Sauvegarder</button>
+      <button class="btn-api btn-api-secondary" onclick="testApiConnection()">Tester la connexion</button>
+    </div>
+
+    <!-- Résultat du test -->
+    <div id="apiTestResult" class="api-test-result" style="display:none;"></div>
+
+    <hr class="api-divider">
+
+    <!-- Statistiques d'utilisation -->
+    <div class="api-stats">
+      <div class="api-stats-title">Statistiques d'utilisation</div>
+      <div class="api-stats-row">
+        <span class="api-stats-label">Appels API aujourd'hui</span>
+        <span class="api-stats-value"><span id="apiCallCount">0</span> / 20</span>
+      </div>
+      <div class="api-stats-row">
+        <span class="api-stats-label">Cache actuel</span>
+        <span class="api-stats-value" id="cacheStatus">Vide</span>
+      </div>
+      <button class="btn-api btn-api-danger" onclick="clearApiCache()">Vider le cache</button>
+    </div>
+
+    <!-- Informations sur les sources -->
+    <hr class="api-divider">
+    <div class="api-info">
+      <div class="api-info-title">Sources de données</div>
+      <div class="api-info-row">
+        <span class="dot live"></span>
+        <span><strong>EODHD</strong> — primaire (JSON REST API)</span>
+      </div>
+      <div class="api-info-row">
+        <span class="dot live"></span>
+        <span><strong>Sikafinance</strong> — secondaire (AJAX endpoint)</span>
+      </div>
+      <div class="api-info-row">
+        <span class="dot mock"></span>
+        <span><strong>Données simulées</strong> — fallback local</span>
+      </div>
+    </div>
+  </div>
 
   <!-- ==================== SCRIPTS ==================== -->
   <!-- Moteur de scoring -->

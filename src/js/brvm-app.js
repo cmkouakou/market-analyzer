@@ -7,7 +7,9 @@
  *  Auteur     : Claude Marcel
  *  Version    : 1.0
  *  Date       : 2026-03-07
- *  Dépendances: scoring.js, charts.js, brvm-data.js, Chart.js 4.x
+ *  Version    : 1.1
+ *  Dépendances: scoring.js, charts.js, brvm-data.js, Chart.js 4.x,
+ *               api-config.js, api-cache.js, brvm-api.js
  * =============================================================
  */
 
@@ -22,15 +24,25 @@ let scoreActuel = null;        // Cache du score calculé
 
 /**
  * Point d'entrée principal — lancé au chargement du DOM
+ * Affiche d'abord les données mock immédiatement, puis charge les données réelles en arrière-plan
  */
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
   initialiserInterface();
   remplirSélecteurEntreprises();
   remplirTickerBRVM();
+
+  // Phase 1 : affichage immédiat avec données mock (expérience fluide)
   chargerEntreprise(entrepriseActive);
+
   initialiserSidebar();
   initialiserSimulateur();
   initialiserAccordeons();
+
+  // Phase 2 : chargement des données réelles en arrière-plan
+  await chargerDonneesLive(entrepriseActive);
+
+  // Mise à jour du ticker avec les cotations réelles
+  await mettreAJourTickerLive();
 });
 
 /**
@@ -135,6 +147,165 @@ function chargerEntreprise(ticker) {
   mettreAJourTopDown(donnees);
   mettreAJourSimulateur();
   mettreAJourScore(scoreActuel);
+
+  // Chargement des données live en arrière-plan (ne bloque pas l'UI)
+  if (brvmApi) {
+    chargerDonneesLive(ticker);
+  }
+}
+
+// ==================== CHARGEMENT DES DONNÉES LIVE ====================
+
+/**
+ * Charge les données temps réel et enrichit l'affichage
+ * Si l'API est indisponible, les données mock restent affichées
+ *
+ * @param {string} ticker - Code BRVM de l'entreprise
+ */
+async function chargerDonneesLive(ticker) {
+  // Si l'API n'est pas encore initialisée, on attend
+  if (!brvmApi) return;
+
+  try {
+    // Chargement parallèle de la cotation et de l'historique
+    const [cotationLive, historiqueLive] = await Promise.all([
+      brvmApi.getQuote(ticker),
+      brvmApi.getHistorical(ticker, 10),
+    ]);
+
+    // Enrichissement des données mock avec les données live
+    const donneesMock = BRVMData.BRVM_COMPANIES[ticker];
+    if (!donneesMock) return;
+
+    const donneesEnrichies = fusionnerAvecDonneesLive(donneesMock, cotationLive, historiqueLive);
+
+    // Re-rendu uniquement si le ticker n'a pas changé entre-temps
+    if (ticker === entrepriseActive) {
+      entrepriseActive = ticker;
+      donneesActuelles = donneesEnrichies;
+
+      // Mise à jour des sections qui bénéficient des données live
+      mettreAJourEntete(donneesEnrichies, scoreActuel);
+      mettreAJourPrixAction(donneesEnrichies, scoreActuel);
+
+      // Indicateur de source
+      showDataSourceIndicator(cotationLive.source === 'mock' ? 'mock' : 'live');
+
+      if (cotationLive.source !== 'mock') {
+        console.info(`[App] Données live chargées pour ${ticker} — source : ${cotationLive.source}`);
+      }
+    }
+  } catch (err) {
+    console.warn('[App] Utilisation des données simulées :', err.message);
+    showDataSourceIndicator('mock');
+  }
+}
+
+/**
+ * Fusionne les données live avec les données mock
+ * Les données fondamentales (PER, PBR, etc.) viennent toujours du mock
+ * Les données de prix et volume viennent de l'API si disponibles
+ *
+ * @param {Object} donneesMock      - Données simulées de référence
+ * @param {Object} cotationLive     - Cotation temps réel depuis l'API
+ * @param {Object} historiqueLive   - Historique de cours depuis l'API
+ * @returns {Object} Données fusionnées prêtes pour l'affichage
+ */
+function fusionnerAvecDonneesLive(donneesMock, cotationLive, historiqueLive) {
+  // Copie profonde pour ne pas modifier le mock
+  const donneesFusionnees = Object.assign({}, donneesMock);
+
+  // Mise à jour du cours actuel si disponible et valide
+  if (cotationLive.source !== 'mock' && cotationLive.close > 0) {
+    donneesFusionnees.cours = cotationLive.close;
+    donneesFusionnees.cours_live = cotationLive;
+
+    // Recalcul du rendement avec le cours live
+    if (donneesMock.dividende && cotationLive.close > 0) {
+      donneesFusionnees.rendement = (donneesMock.dividende / cotationLive.close) * 100;
+    }
+  }
+
+  // Mise à jour de l'historique si assez de points de données
+  if (
+    historiqueLive.source !== 'mock' &&
+    historiqueLive.close &&
+    historiqueLive.close.length >= 12
+  ) {
+    // Utilisation des 12 derniers mois de l'historique live pour le graphique
+    const nbPoints = 12;
+    const closeRecents = historiqueLive.close.slice(-nbPoints);
+    const datesRecentes = historiqueLive.dates.slice(-nbPoints).map(d => {
+      // Formatage des dates en libellé court (ex: "Jan")
+      try {
+        return new Date(d).toLocaleDateString('fr-FR', { month: 'short' });
+      } catch {
+        return d;
+      }
+    });
+
+    donneesFusionnees.cours_historique = closeRecents;
+    donneesFusionnees.labels_historique = datesRecentes;
+    donneesFusionnees.historique_source = 'live';
+  }
+
+  return donneesFusionnees;
+}
+
+/**
+ * Met à jour la barre ticker avec les cotations live
+ */
+async function mettreAJourTickerLive() {
+  if (!brvmApi) return;
+
+  try {
+    const toutesLesCotations = await brvmApi.getAllQuotes();
+
+    const tickerInner = document.getElementById('tickerInner');
+    if (!tickerInner) return;
+
+    // Transformation en format ticker
+    const items = toutesLesCotations.map(c => ({
+      symbol: c.ticker,
+      price: c.close || 0,
+      change: `${c.change_p >= 0 ? '+' : ''}${(c.change_p || 0).toFixed(1)}%`,
+      direction: (c.change_p || 0) >= 0 ? 'up' : 'down',
+    }));
+
+    // Duplication pour l'animation en boucle continue
+    const itemsDuplication = [...items, ...items];
+    tickerInner.innerHTML = itemsDuplication.map(item => `
+      <span class="ticker-item">
+        <span class="ticker-symbol">${item.symbol}</span>
+        <span class="ticker-price">${Number(item.price).toLocaleString('fr-FR')} FCFA</span>
+        <span class="ticker-change ${item.direction}">${item.change}</span>
+      </span>
+    `).join('');
+  } catch (err) {
+    console.warn('[App] Erreur mise à jour ticker live :', err.message);
+    // Le ticker reste avec les données mock affichées initialement
+  }
+}
+
+/**
+ * Actualise toutes les données pour l'entreprise active
+ * Appelé par le bouton "Actualiser" du header
+ */
+async function actualiserDonnees() {
+  const btn = document.getElementById('btnActualiser');
+  if (btn) btn.classList.add('spinning');
+
+  // Vider le cache pour forcer un rechargement
+  if (window.ApiCache) {
+    window.ApiCache.cacheQuotes.clear(`cotation_${entrepriseActive}`);
+  }
+
+  await chargerDonneesLive(entrepriseActive);
+  await mettreAJourTickerLive();
+
+  if (btn) {
+    setTimeout(() => btn.classList.remove('spinning'), 600);
+  }
 }
 
 // ==================== EN-TÊTE ====================
