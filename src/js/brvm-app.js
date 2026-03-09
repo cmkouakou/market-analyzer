@@ -345,18 +345,22 @@ async function actualiserDonnees() {
  * @param {Object} score   - Résultat du scoring 3P
  */
 function mettreAJourEntete(donnees, score) {
-  // Cours actuel dans l'en-tête
-  const elCours = document.getElementById('headerCours');
-  if (elCours) {
-    elCours.textContent = `${Number(donnees.cours).toLocaleString('fr-FR')} FCFA`;
-  }
+  // Nom et ticker de l'entreprise
+  mettreAJourElement('companyName', donnees.name);
+  mettreAJourElement('companyTicker', donnees.ticker);
+  mettreAJourElement('companyMeta',
+    `${donnees.sector} · ${donnees.pays} · ${Number(donnees.cours).toLocaleString('fr-FR')} FCFA`);
 
-  // Secteur
-  const elSecteur = document.getElementById('headerSecteur');
-  if (elSecteur) elSecteur.textContent = donnees.sector;
+  // Nom de l'entreprise dans le CTA simulateur
+  mettreAJourElement('simCompanyName', donnees.name);
+  mettreAJourElement('simModalSubtitle', `${donnees.name} (${donnees.ticker})`);
 
   // Score ring dans l'en-tête
   mettreAJourScoreRing('headerScoreRing', 'headerScoreValue', score.score, score.recommandationClass);
+
+  // Mise à jour du sélecteur
+  const select = document.getElementById('selectEntreprise');
+  if (select && select.value !== donnees.ticker) select.value = donnees.ticker;
 }
 
 /**
@@ -436,9 +440,9 @@ function mettreAJourCarteKPI(valueId, cagrId, tendId, valeur, cagr, label) {
     else { elTend.textContent = '↓'; elTend.className = 'kpi-trend down'; }
   }
 
-  // Mise à jour du label de période (dynamique selon ANNEES_10)
-  const elPeriod = elTend ? elTend.closest('.kpi-meta')?.querySelector('.kpi-period') : null;
-  if (elPeriod) elPeriod.textContent = labelPeriode();
+  // Mise à jour du label de période (dynamique, ex: "2017 → 2026")
+  const periodId = valueId + 'Period'; // kpiCA → kpiCAPeriod
+  mettreAJourElement(periodId, labelPeriode());
 }
 
 // ==================== GRAPHIQUES DE PERFORMANCE ====================
@@ -535,40 +539,25 @@ function mettreAJourFinancement(donnees) {
 function mettreAJourSectoriel(donnees) {
   const n = donnees.roe.length - 1;
 
-  // Métriques de rentabilité
+  // Label secteur
+  mettreAJourElement('sectorLabel', donnees.sector);
+
+  // 4 ratios dans la grille
   mettreAJourElement('roeActuel', donnees.roe[n].toFixed(1) + '%');
-  mettreAJourElement('roaActuel', donnees.roa[n].toFixed(1) + '%');
   mettreAJourElement('rendementActuel', donnees.rendement.toFixed(1) + '%');
+  mettreAJourElement('perActuel', donnees.per.toFixed(1) + 'x');
+  mettreAJourElement('pbrActuel', donnees.pbr.toFixed(1) + 'x');
 
-  // Graphique ROE sur 10 ans
-  Charts.creerGraphiqueLigne('chartROE', BRVMData.ANNEES_10, donnees.roe,
-    'ROE (%)', Charts.obtenirCouleurs().principal, v => v.toFixed(1) + '%');
-
-  // Tableau comparatif des pairs
-  const tbody = document.getElementById('tablePairsBody');
-  if (tbody && donnees.peers) {
-    tbody.innerHTML = donnees.peers.map((pair, i) => {
-      const estActuel = pair.ticker === donnees.ticker;
-      return `
-        <tr class="${estActuel ? 'peer-highlight' : ''}">
-          <td class="text-primary ${estActuel ? 'font-bold' : ''}">${pair.name}</td>
-          <td class="text-right">${pair.roe.toFixed(1)}%</td>
-          <td class="text-right">${pair.per.toFixed(1)}x</td>
-          <td class="text-right">${pair.rendement.toFixed(1)}%</td>
-          <td class="text-right">${pair.croissance.toFixed(1)}%</td>
-          ${estActuel ? '<td class="text-right"><span class="badge badge-success">Vous</span></td>' : '<td></td>'}
-        </tr>
-      `;
+  // Pairs mini
+  const peersMini = document.getElementById('peersMini');
+  if (peersMini && donnees.peers) {
+    peersMini.innerHTML = donnees.peers.map(p => {
+      const estActuel = p.ticker === donnees.ticker;
+      return `<div class="peer-mini-row ${estActuel ? 'current' : ''}">
+        <span class="peer-mini-name">${p.name}</span>
+        <span class="peer-mini-val">ROE ${p.roe.toFixed(1)}% · PER ${p.per.toFixed(1)}x</span>
+      </div>`;
     }).join('');
-  }
-
-  // Graphique comparatif ROE pairs
-  if (donnees.peers) {
-    const noms = donnees.peers.map(p => p.name);
-    const roes = donnees.peers.map(p => p.roe);
-    const indexActuel = donnees.peers.findIndex(p => p.ticker === donnees.ticker);
-    Charts.creerGraphiqueHorizontal('chartComparaisonROE', noms, roes,
-      'ROE (%)', indexActuel);
   }
 }
 
@@ -777,45 +766,24 @@ function mettreAJourSimulateur() {
  * @param {Object} score - Résultat de calculerScore3P()
  */
 function mettreAJourScore(score) {
-  // Score ring principal
-  const ringLarge = document.getElementById('scoreRingLarge');
-  if (ringLarge) {
-    ringLarge.style.setProperty('--score', score.score);
-    const couleurs = { acheter: '#2ecc71', surveiller: '#f39c12', eviter: '#e74c3c' };
-    const couleur = couleurs[score.recommandationClass] || '#2ecc71';
-    ringLarge.style.background = `conic-gradient(${couleur} calc(${score.score} * 3.6deg), #1a3320 0)`;
+  // Piliers — valeurs texte
+  mettreAJourElement('scorePortrait', `${Math.round(score.portrait.total)} / ${score.portrait.max}`);
+  mettreAJourElement('scorePerspectives', `${Math.round(score.perspectives.total)} / ${score.perspectives.max}`);
+  mettreAJourElement('scorePrix', `${Math.round(score.prix.total)} / ${score.prix.max}`);
 
-    // Force l'animation
-    ringLarge.style.animation = 'none';
-    ringLarge.offsetHeight; // Force le reflow
-    ringLarge.style.animation = 'scoreRevealLarge 1s ease-out';
-  }
+  // Barres de progression
+  mettreAJourBarreScore('barPortrait', null, score.portrait.total, score.portrait.max);
+  mettreAJourBarreScore('barPerspectives', null, score.perspectives.total, score.perspectives.max);
+  mettreAJourBarreScore('barPrix', null, score.prix.total, score.prix.max);
 
-  // Valeur numérique
-  mettreAJourElement('scoreNumber', score.score);
-
-  // Badge de recommandation
-  const elReco = document.getElementById('scoreReco');
+  // Recommandation
+  const elReco = document.getElementById('scoreRecoDisplay');
   if (elReco) {
     elReco.textContent = score.recommandation;
-    elReco.className = 'score-reco ' + score.recommandationClass;
+    elReco.className = 'score-reco-display ' + score.recommandationClass;
   }
 
-  // Barre par pilier
-  const pcts = Scoring.calculerPourcentagesPiliers(score);
-
-  mettreAJourBarreScore('barPortrait', 'valPortrait',
-    score.portrait.total, score.portrait.max);
-  mettreAJourBarreScore('barPerspectives', 'valPerspectives',
-    score.perspectives.total, score.perspectives.max);
-  mettreAJourBarreScore('barPrix', 'valPrix',
-    score.prix.total, score.prix.max);
-
-  // Justification
-  const elJust = document.getElementById('scoreJustification');
-  if (elJust) elJust.textContent = score.justification;
-
-  // Mise à jour du badge de score dans l'en-tête aussi
+  // Score ring en-tête
   mettreAJourScoreRing('headerScoreRing', 'headerScoreValue', score.score, score.recommandationClass);
 }
 
@@ -829,55 +797,56 @@ function mettreAJourScore(score) {
  */
 function mettreAJourBarreScore(barId, valId, pts, max) {
   const bar = document.getElementById(barId);
-  const val = document.getElementById(valId);
-
-  if (bar) {
-    const pct = Math.round((pts / max) * 100);
-    bar.style.width = pct + '%';
+  if (bar) bar.style.width = Math.round((pts / max) * 100) + '%';
+  if (valId) {
+    const val = document.getElementById(valId);
+    if (val) val.textContent = `${Math.round(pts)}/${max} pts`;
   }
-
-  if (val) val.textContent = `${Math.round(pts)}/${max} pts`;
 }
 
 // ==================== SIDEBAR ====================
 
 /**
- * Initialise la barre latérale (toggle, navigation, accordéon)
+ * Navigue vers une vue SPA
+ * @param {string} viewId - Identifiant de la vue (ex: 'entreprises')
+ */
+function naviguerVers(viewId) {
+  // Masque toutes les vues
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+
+  // Affiche la vue cible
+  const vueTarget = document.getElementById('view' + viewId.charAt(0).toUpperCase() + viewId.slice(1));
+  if (vueTarget) vueTarget.classList.add('active');
+
+  // Met à jour l'état actif du menu
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.dataset.view === viewId);
+  });
+
+  // Remplissage des vues tabulaires au premier affichage
+  if (viewId === 'secteurs' && !document.getElementById('secteursTbody').dataset.rempli) {
+    remplirTableauSecteurs();
+    document.getElementById('secteursTbody').dataset.rempli = '1';
+  }
+  if (viewId === 'comparaison' && !document.getElementById('comparaisonTbody').dataset.rempli) {
+    remplirTableauComparaison();
+    document.getElementById('comparaisonTbody').dataset.rempli = '1';
+  }
+  if (viewId === 'parametres') {
+    mettreAJourStatsApi();
+  }
+}
+
+/**
+ * Initialise la barre latérale (navigation SPA par vues)
  */
 function initialiserSidebar() {
-  const toggleBtn = document.getElementById('sidebarToggle');
-  const sidebar = document.getElementById('sidebar');
-  const mainContent = document.getElementById('mainContent');
-
-  if (toggleBtn && sidebar) {
-    toggleBtn.addEventListener('click', function() {
-      sidebar.classList.toggle('collapsed');
-      if (mainContent) mainContent.classList.toggle('sidebar-collapsed');
-    });
-  }
-
-  // Navigation entre sections
-  const navItems = document.querySelectorAll('.nav-item[data-section]');
+  const navItems = document.querySelectorAll('.nav-item[data-view]');
   navItems.forEach(item => {
     item.addEventListener('click', function() {
-      // Suppression de l'état actif précédent
-      navItems.forEach(n => n.classList.remove('active'));
-      this.classList.add('active');
+      naviguerVers(this.dataset.view);
 
-      const sectionId = this.dataset.section;
-      const section = document.getElementById(sectionId);
-      if (section) {
-        // Ouverture de l'accordéon cible si fermé
-        if (!section.classList.contains('open')) {
-          section.classList.add('open');
-        }
-        // Scroll avec décalage pour header sticky (ticker 36px + header 64px + marge 12px)
-        const offset = 112;
-        const top = section.getBoundingClientRect().top + window.scrollY - offset;
-        window.scrollTo({ top, behavior: 'smooth' });
-      }
-
-      // Sur mobile : ferme le menu après clic
+      // Sur mobile : ferme le menu
       const sidebar = document.getElementById('sidebar');
       const overlay = document.getElementById('sidebarOverlay');
       if (sidebar && sidebar.classList.contains('mobile-open')) {
@@ -886,46 +855,31 @@ function initialiserSidebar() {
       }
     });
   });
-
-  // IntersectionObserver : met en surbrillance le lien sidebar de la section visible
-  const observateur = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const id = entry.target.id;
-        navItems.forEach(n => {
-          n.classList.toggle('active', n.dataset.section === id);
-        });
-      }
-    });
-  }, { rootMargin: '-110px 0px -60% 0px', threshold: 0 });
-
-  document.querySelectorAll('.accordion-section[id]').forEach(sec => observateur.observe(sec));
 }
 
 // ==================== ACCORDÉONS ====================
 
 /**
- * Initialise l'état des accordéons et leurs animations
+ * Bascule l'affichage d'une section dans la vue Entreprises
+ * @param {string} sectionId - ID de la section à basculer
+ * @param {HTMLElement} btn  - Bouton toggle cliqué
  */
-function initialiserAccordeons() {
-  // La première section est ouverte par défaut
-  const premiereSection = document.querySelector('.accordion-section');
-  if (premiereSection) {
-    premiereSection.classList.add('open');
+function basculerSection(sectionId, btn) {
+  const section = document.getElementById(sectionId);
+  if (!section) return;
+
+  const isHidden = section.classList.contains('hidden');
+  section.classList.toggle('hidden', !isHidden);
+
+  if (btn) {
+    btn.classList.toggle('active', isHidden);
+    const arrow = btn.querySelector('.stoggle-arrow');
+    if (arrow) arrow.textContent = isHidden ? '▾' : '▸';
   }
 }
 
-/**
- * Bascule l'état d'un accordéon
- *
- * @param {HTMLElement} header - En-tête de l'accordéon cliqué
- */
-function toggleSection(header) {
-  const section = header.closest('.accordion-section');
-  if (!section) return;
-
-  section.classList.toggle('open');
-}
+// initialiserAccordeons est conservé pour compatibilité (no-op dans la nouvelle archi)
+function initialiserAccordeons() {}
 
 // ==================== UTILITAIRES ====================
 
@@ -1004,9 +958,253 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') fermerModalGraphique();
 });
 
+// ==================== SPARKLINES KPI ====================
+
+/**
+ * Dessine un sparkline minimaliste dans un canvas
+ * @param {string} canvasId - ID du canvas
+ * @param {number[]} donnees - Tableau de valeurs
+ * @param {string} couleur  - Couleur de la ligne
+ */
+function dessinerSparkline(canvasId, donnees, couleur) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas || !donnees || donnees.length < 2) return;
+
+  // Détruit un éventuel chart existant
+  const chartExist = Chart.getChart(canvas);
+  if (chartExist) chartExist.destroy();
+
+  new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: donnees.map(() => ''),
+      datasets: [{ data: donnees, borderColor: couleur, borderWidth: 1.5,
+        pointRadius: 0, fill: true,
+        backgroundColor: couleur.replace(')', ', 0.1)').replace('rgb', 'rgba') }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: false,
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      scales: { x: { display: false }, y: { display: false } }
+    }
+  });
+}
+
+// ==================== REMPLISSAGE DES VUES TABULAIRES ====================
+
+/**
+ * Remplit le tableau des secteurs et la liste complète des entreprises
+ */
+function remplirTableauSecteurs() {
+  // Regroupement par secteur
+  const secteursMap = {};
+  BRVMData.BRVM_COMPANY_LIST.forEach(c => {
+    if (!secteursMap[c.sector]) secteursMap[c.sector] = [];
+    secteursMap[c.sector].push(c.name);
+  });
+
+  const tbody = document.getElementById('secteursTbody');
+  if (tbody) {
+    tbody.innerHTML = Object.entries(secteursMap).map(([sec, noms]) => `
+      <tr>
+        <td>${sec}</td>
+        <td class="text-right">${noms.length}</td>
+        <td>${noms.slice(0, 3).join(', ')}${noms.length > 3 ? '…' : ''}</td>
+      </tr>
+    `).join('');
+  }
+
+  // Liste complète toutes entreprises
+  const tbodyAll = document.getElementById('allCompaniesTbody');
+  if (tbodyAll) {
+    tbodyAll.innerHTML = BRVMData.BRVM_COMPANY_LIST.map(c => {
+      const d = BRVMData.BRVM_COMPANIES[c.ticker];
+      const cours = d ? Number(d.cours).toLocaleString('fr-FR') : '—';
+      return `<tr onclick="chargerEntreprise('${c.ticker}');naviguerVers('entreprises')" style="cursor:pointer">
+        <td class="ticker-code">${c.ticker}</td>
+        <td>${c.name}</td>
+        <td>${c.sector}</td>
+        <td>${c.country || c.pays || '—'}</td>
+        <td class="text-right">${cours}</td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+/**
+ * Remplit le tableau de comparaison des entreprises avec leurs ratios
+ */
+function remplirTableauComparaison() {
+  const tbody = document.getElementById('comparaisonTbody');
+  if (!tbody) return;
+
+  tbody.innerHTML = BRVMData.BRVM_COMPANY_LIST.map(c => {
+    const d = BRVMData.BRVM_COMPANIES[c.ticker];
+    if (!d) return '';
+
+    const score = Scoring.calculerScore3P({
+      ca: d.ca, rex: d.rex, rn: d.rn, news: d.news, topdown: d.topdown,
+      per: d.per, pbr: d.pbr, dividende: d.dividende, cours: d.cours,
+      rendement: d.rendement, name: d.name
+    });
+
+    return `<tr onclick="chargerEntreprise('${d.ticker}');naviguerVers('entreprises')" style="cursor:pointer">
+      <td class="ticker-code">${d.ticker}</td>
+      <td>${d.name}</td>
+      <td>${d.sector}</td>
+      <td class="text-right">${Number(d.cours).toLocaleString('fr-FR')}</td>
+      <td class="text-right">${d.per.toFixed(1)}x</td>
+      <td class="text-right">${d.pbr.toFixed(1)}x</td>
+      <td class="text-right">${d.rendement.toFixed(1)}%</td>
+      <td class="text-right"><span class="score-badge-sm ${score.recommandationClass}">${score.score}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ==================== API / PARAMÈTRES ====================
+
+/**
+ * Sauvegarde la clé API EODHD dans localStorage
+ */
+function saveApiKey() {
+  const input = document.getElementById('eodhdTokenInput');
+  if (!input || !input.value.trim()) return;
+  localStorage.setItem('eodhd_token', input.value.trim());
+  const res = document.getElementById('apiTestResult');
+  if (res) {
+    res.className = 'api-test-result success';
+    res.textContent = '✅ Clé sauvegardée. Rechargez pour l\'activer.';
+  }
+}
+
+/**
+ * Teste la connexion à l'API EODHD
+ */
+async function testApiConnection() {
+  const res = document.getElementById('apiTestResult');
+  if (res) { res.className = 'api-test-result'; res.textContent = 'Test en cours…'; }
+
+  try {
+    const url = window.ApiConfig.API_CONFIG.eodhd.endpoints.realtime('SNTS.BRVM');
+    const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+
+    if (res) {
+      res.className = 'api-test-result success';
+      res.textContent = `✅ Connexion réussie ! SNTS = ${data.close || data.last || '?'} FCFA`;
+    }
+  } catch (err) {
+    if (res) {
+      res.className = 'api-test-result error';
+      res.textContent = `❌ Échec de la connexion : ${err.message}`;
+    }
+  }
+}
+
+/**
+ * Vide le cache API
+ */
+function clearApiCache() {
+  const keys = Object.keys(localStorage).filter(k => k.startsWith('brvm_cache_') || k.startsWith('cotation_'));
+  keys.forEach(k => localStorage.removeItem(k));
+  mettreAJourStatsApi();
+  const btn = document.querySelector('.btn-danger-action');
+  if (btn) { btn.textContent = '✅ Cache vidé !'; setTimeout(() => { btn.textContent = 'Vider le cache'; }, 2000); }
+}
+
+/**
+ * Met à jour les statistiques d'utilisation API dans la vue Paramètres
+ */
+function mettreAJourStatsApi() {
+  const config = window.ApiConfig?.API_CONFIG?.eodhd?.rateLimit;
+  if (!config) return;
+
+  const calls = parseInt(localStorage.getItem(config.storageKey) || '0');
+  const cacheKeys = Object.keys(localStorage).filter(k => k.startsWith('brvm_cache_')).length;
+
+  mettreAJourElement('apiCallCount', `${calls} / ${config.dailyMax}`);
+  mettreAJourElement('cacheStatus', `${cacheKeys} entrée${cacheKeys > 1 ? 's' : ''}`);
+
+  // Pré-remplit le champ token
+  const tokenInput = document.getElementById('eodhdTokenInput');
+  if (tokenInput) tokenInput.value = localStorage.getItem('eodhd_token') || '';
+}
+
+/**
+ * Affiche l'indicateur de source de données
+ * @param {string} etat - 'live' | 'mock' | 'error'
+ */
+function showDataSourceIndicator(etat) {
+  const dot = document.getElementById('dsDot');
+  const label = document.getElementById('dsLabel');
+  const map = {
+    live:  { classe: 'live',  texte: 'Données temps réel' },
+    mock:  { classe: 'mock',  texte: 'Données simulées' },
+    error: { classe: 'error', texte: 'Erreur de connexion' }
+  };
+  const info = map[etat] || map.mock;
+  if (dot)   { dot.className = `ds-dot ${info.classe}`; }
+  if (label) { label.textContent = info.texte; }
+}
+
+// ==================== SIMULATEUR ====================
+
+/**
+ * Ouvre le modal du simulateur d'investissement
+ */
+function ouvrirSimulateur() {
+  calculerSimulation();
+  const modal = document.getElementById('simulateurModal');
+  if (modal) modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+/**
+ * Ferme le modal du simulateur
+ */
+function fermerSimulateur() {
+  const modal = document.getElementById('simulateurModal');
+  if (modal) modal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ==================== GRAPHIQUES DE PERFORMANCE (mis à jour) ====================
+// Remplace mettreAJourGraphiquesPerformance pour ne créer que chartCA et chartRN
+// (chartREX est supprimé dans la nouvelle vue)
+function mettreAJourGraphiquesPerformance(donnees) {
+  const couleurs = Charts.obtenirCouleurs();
+  const labels = BRVMData.ANNEES_10;
+
+  const fmt = v => {
+    if (v >= 1000000) return (v / 1000000).toFixed(1) + ' T';
+    if (v >= 1000) return (v / 1000).toFixed(0) + ' Mrd';
+    return v + ' M';
+  };
+
+  Charts.creerGraphiqueLigne('chartCA', labels, donnees.ca,
+    'Chiffre d\'affaires', couleurs.principal, fmt);
+
+  Charts.creerGraphiqueLigne('chartRN', labels, donnees.rn,
+    'Résultat net', couleurs.tertiaire, fmt);
+
+  // Sparklines KPI
+  dessinerSparkline('sparkCA',  donnees.ca,  '#2ecc71');
+  dessinerSparkline('sparkREX', donnees.rex, '#f39c12');
+  dessinerSparkline('sparkRN',  donnees.rn,  '#3498db');
+}
+
 // ==================== EXPORTS GLOBAUX ====================
 // Expose les fonctions nécessaires aux gestionnaires HTML inline
-window.toggleSection = toggleSection;
+window.naviguerVers = naviguerVers;
 window.chargerEntreprise = chargerEntreprise;
+window.basculerSection = basculerSection;
 window.agrandirGraphique = agrandirGraphique;
 window.fermerModalGraphique = fermerModalGraphique;
+window.ouvrirSimulateur = ouvrirSimulateur;
+window.fermerSimulateur = fermerSimulateur;
+window.saveApiKey = saveApiKey;
+window.testApiConnection = testApiConnection;
+window.clearApiCache = clearApiCache;
+window.actualiserDonnees = actualiserDonnees;
